@@ -6,6 +6,10 @@
 
 **A multi-agent context and behavior framework for AI-assisted software development.**
 
+```bash
+npx create-hivemind-protocol my-project
+```
+
 HiveMind Protocol is an open-source repository template that structures how AI agents collaborate on a software project. It gives any LLM (Claude, GPT, Gemini, or others) persistent memory, defined roles, behavioral boundaries, and a shared communication protocol — preventing hallucinations, token waste, and context loss across sessions.
 
 ---
@@ -115,7 +119,15 @@ Research shows brevity constraints don't just save money — they improve accura
 
 ## Getting Started
 
-### 1. Clone or use as template
+### 1. Scaffold your project
+
+**Option A — npx (recommended)**
+```bash
+npx create-hivemind-protocol my-project
+cd my-project
+```
+
+**Option B — Clone or use as template**
 ```bash
 git clone https://github.com/your-org/hivemind-protocol my-project
 cd my-project

@@ -241,6 +241,11 @@
       "syntax": "/deploy [--env <staging|production>] [--agent <agent>]",
       "description": "Formalize QA → Security → DevOps deployment handoff chain",
       "model_tier": "standard"
+    },
+    "compact": {
+      "syntax": "/compact [--older-than <days>] [--file <decisions|blockers|all>]",
+      "description": "Compress old memory entries into a digest block to reduce cold-start token cost",
+      "model_tier": "lite"
     }
   },
 

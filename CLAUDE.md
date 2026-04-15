@@ -8,16 +8,29 @@
 
 ## 1. Session Initialization
 
-Every session **must** begin with the following reads, in order:
+Every session uses **tiered memory loading** — read only what's needed, in order.
 
-1. `project.json` — project context, stack, active agents, railguards, model routing
-2. `memory/shared-context.md` — current global state
-3. `memory/blockers.md` — active blockers
-4. `memory/handoff-queue.md` — pending handoffs
-5. Your own profile at `agents/<your-role>.md`
-6. Your own state at `memory/agent-states/<your-role>.state.md`
+### Tier 0 — Always (2 reads, ~300 tokens)
+1. `memory/MANIFEST.md` — routing table, domain index, last-entry pointers, compaction status
+2. `memory/shared-context.md` **lines 1–25 only** — phase, sprint, active focus
 
-**Never execute tasks without completing the initialization reads.**
+### Tier 1 — Load when relevant (~500 tokens)
+3. `agents/<your-role>.md` — your profile (first session or after long absence only)
+4. `memory/agent-states/<your-role>.state.md` — your last known state
+5. If MANIFEST shows active blockers → `memory/blockers.md` active section only
+6. If MANIFEST shows pending handoffs for you → `memory/handoff-queue.md` your entries only
+7. Domain decisions → `memory/decisions.log` **referenced lines only** (per MANIFEST last-entry table)
+
+### Tier 2 — Explicit fetch only (load only when the task requires it)
+- `memory/decisions.log` full history — only when re-evaluating a prior architectural decision
+- `memory/blockers.md` resolved section — only when diagnosing a recurring issue
+- Other agents' state files — only when resuming their work
+- `reports/CHANGELOG.md`, `reports/sprint-report.md` — only for sprint/audit tasks
+- `project.json` — only when modifying stack, routing, railguards, or active agents
+
+### Rule
+> Check MANIFEST before any technical decision — avoids re-deciding settled questions.
+> **Never load Tier 2 speculatively. Never execute tasks without completing Tier 0.**
 
 ---
 
@@ -116,8 +129,16 @@ Drop from memory entries: articles, filler, hedging, meta-phrases like "It is wo
 - **blockers.md**: Add blockers immediately when identified. Resolve by marking `[RESOLVED: <date>]`.
 - **agent-states/**: Update your state file at the end of each session.
 
+### MANIFEST update (mandatory after every write)
+After writing to **any** memory file:
+1. Update the relevant row in `MANIFEST.md` → **Last entries per file** table (new summary + line ref)
+2. Add/update a row in **Domain index** if a new domain is introduced
+3. Append one line to MANIFEST **Update log**: `[YYYY-MM-DD HH:MM] [agent] updated: <file> — <summary>`
+
+This keeps Tier 0 accurate so agents never need to scan files to find current state.
+
 ### Golden Rule
-> Read before writing. Never overwrite history. Prefer append.
+> Read MANIFEST first. Write memory files second. Update MANIFEST third. Never overwrite history.
 
 ---
 

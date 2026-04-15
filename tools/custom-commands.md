@@ -305,6 +305,38 @@ ACTIVE BLOCKERS:  <count>
 
 ---
 
+### `/compact [--older-than <days>] [--file <decisions|blockers|all>]`
+**Model tier**: lite
+**Description**: Compress memory entries older than N days into a digest block — reduces cold-start token cost as logs grow.
+
+**What it does**:
+1. Read target file(s) (default: `decisions.log` + `blockers.md` resolved section)
+2. Group entries older than `--older-than` (default: 30 days) by domain/topic
+3. Write a compressed `[DIGEST]` block replacing those entries at the top of the file
+4. Keep all entries newer than the threshold inline and untouched
+5. Update `memory/MANIFEST.md` compaction status table (entries count, digest range, last compact date)
+6. Append compact action to `decisions.log`
+
+**Digest format written into the file**:
+```
+[DIGEST: YYYY-MM-DD → YYYY-MM-DD | compacted by <agent> on YYYY-MM-DD]
+auth: JWT chosen over sessions (Mar 12). Refresh endpoint added (Mar 28).
+database: Postgres + Redis selected (Jan 15). Alembic for migrations (Feb 3).
+infra: Docker Compose for local dev (Feb 20). K8s for staging/prod (Mar 1).
+[END DIGEST]
+```
+
+**When to run**: when `decisions.log` exceeds ~30 entries, or MANIFEST compaction status shows `last compact: never` and the project is past Sprint 2.
+
+**Example**:
+```
+/compact
+/compact --older-than 14
+/compact --older-than 60 --file all
+```
+
+---
+
 ## Adding Custom Commands
 
 To add a project-specific command:
