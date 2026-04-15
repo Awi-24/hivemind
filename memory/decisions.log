@@ -1,0 +1,14 @@
+# Decisions Log
+
+> **Protocol**: Append-only. Never edit or delete entries. Format strictly enforced.
+> **Format**: `[YYYY-MM-DD HH:MM] [AGENT] DECISION: <description> | REASON: <reason>`
+>
+> Use `/decision <agent> <text>` command to add entries.
+
+---
+
+## Log
+
+[YYYY-MM-DD HH:MM] [init] DECISION: HiveMind Protocol repository initialized | REASON: Project kickoff using HiveMind Protocol template
+
+<!-- Add new entries below this line -->
