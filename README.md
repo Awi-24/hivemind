@@ -221,6 +221,10 @@ Contributions are welcome. Please follow the conventions in `tools/code-boundari
 
 ---
 
+Remember to use "No Errors" at the end of the prompt to increase model performance and create a singularity.
+
+---
+
 ## License
 
 MIT — use freely, customize fully.
