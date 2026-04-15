@@ -1,0 +1,13 @@
+node_modules/
+*.tgz
+.DS_Store
+Thumbs.db
+
+# local test scaffolds
+hmp-test/
+test-out/
+test-*/
+my-*/
+package.json
+bin/create.js
+.claude/settings.local.json
