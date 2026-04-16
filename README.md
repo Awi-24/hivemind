@@ -5,223 +5,360 @@
 # HiveMind Protocol
 
 **A multi-agent context and behavior framework for AI-assisted software development.**
+**Drop it into any repo as `.hivemind/` — give your agents persistent memory, role discipline, and token hygiene.**
+
+```bash
+npx create-hivemind-protocol
+```
+
+HiveMind is a **framework folder** (`.hivemind/`) you place at the root of any project. It turns any LLM coding assistant (Claude Code first-class, GPT / Gemini / Ollama compatible) into a governed multi-agent system with persistent memory, defined roles, behavioral railguards, and a 4-level token compression protocol — preventing hallucinations, context loss, and the classic agent failure modes: forgetting, looping, drifting, and burning tokens.
+
+---
+
+## Why HiveMind
+
+Typical pain points HiveMind solves:
+
+| Pain | HiveMind fix |
+|------|--------------|
+| Agent forgets project context every session | Tiered memory system (MANIFEST-led) |
+| Agent loops on the same failing approach | Anti-loop railguards (3-attempt limit → escalate) |
+| Agent burns tokens on filler and re-reads | 4-level compression + tier-gated file reads |
+| Agent touches files it shouldn't | Code-boundaries map per agent role |
+| Agent skips documentation | Append-only decisions + CHANGELOG protocol |
+| Agent does destructive ops silently | Confirmation gates + auto-clarity suspension |
+| `/init` does nothing useful | CTO posture + interactive onboarding form |
+| Custom slash commands don't show in dropdown | Native `.claude/commands/*.md` integration |
+
+---
+
+## Installation
+
+### Option A — Clone into your project
+
+```bash
+cd my-project/
+git clone --depth 1 https://github.com/Awi-24/hivemind-protocol .hivemind-seed
+mv .hivemind-seed/.hivemind ./.hivemind
+mv .hivemind-seed/.claude ./.claude
+mv .hivemind-seed/CLAUDE.md ./CLAUDE.md
+rm -rf .hivemind-seed
+```
+
+### Option B — New project from template
 
 ```bash
 npx create-hivemind-protocol my-project
+cd my-project
 ```
 
-HiveMind Protocol is an open-source repository template that structures how AI agents collaborate on a software project. It gives any LLM (Claude, GPT, Gemini, or others) persistent memory, defined roles, behavioral boundaries, and a shared communication protocol — preventing hallucinations, token waste, and context loss across sessions.
+### Option C — Manual
+
+Copy these into your project root:
+- `.hivemind/` (framework)
+- `.claude/commands/` (slash commands)
+- `CLAUDE.md` (behavior protocol)
+
+### Initialize
+
+Open Claude Code at your project root and run:
+
+```
+/init
+```
+
+The CTO agent will present an onboarding form (project name, stack, active agents, compression level, language). Answers populate `.hivemind/project.json` and bootstrap the memory system.
 
 ---
 
-## Core Concepts
+## Repository Layout (after install)
 
-| Concept | What it does |
-|---------|-------------|
-| **Agent profiles** | 12 role-based `.md` files that define behavior, ownership, and responsibilities |
-| **Shared memory** | A file-based memory system that persists state across sessions and between agents |
-| **Model routing** | Automatic model selection by task complexity (Haiku → Sonnet → Opus) |
-| **Token compression** | Caveman-inspired output (~65% reduction) + memory compression (~46% input reduction) |
-| **Railguards** | Rules that prevent loops, token waste, and dangerous operations |
-| **Reports** | A living changelog and audit log written collaboratively by all agents |
-| **Tools** | MCP catalog, code ownership map, scaffold templates, and custom commands |
+```
+your-project/                     ← your actual project
+├── .hivemind/                    ← HiveMind framework (read-only to project code)
+│   ├── agents/                   ← 12 role profiles
+│   ├── memory/
+│   │   ├── MANIFEST.md           ← Tier 0 — self-sufficient session snapshot
+│   │   ├── shared-context.md
+│   │   ├── decisions.log
+│   │   ├── handoff-queue.md
+│   │   ├── blockers.md
+│   │   └── agent-states/
+│   ├── reports/
+│   │   ├── CHANGELOG.md
+│   │   ├── sprint-report.md
+│   │   └── audit-log.md
+│   ├── tools/
+│   │   ├── token-compression.md  ← 4-level compression spec
+│   │   ├── code-boundaries.md
+│   │   ├── token-railguards.md
+│   │   ├── mcp-catalog.md
+│   │   ├── custom-commands.md
+│   │   └── scaffold-templates/
+│   └── project.json              ← filled by /init
+│
+├── .claude/
+│   ├── settings.json
+│   └── commands/                 ← 22 slash commands (appear in / dropdown)
+│
+├── CLAUDE.md                     ← auto-loaded behavior protocol
+│
+└── src/ apps/ services/ …        ← YOUR project code
+```
+
+**Hard rule**: `.hivemind/` is the framework, not the project. Project code never goes inside it.
 
 ---
 
-## Repository Structure
+## The 12 Agents
+
+Role-based profiles under `.hivemind/agents/`. Activate only what you need via `/init`.
+
+| Slug | Role | Default tier |
+|------|------|--------------|
+| `cto` | Chief Technology Officer — governance, final escalation | heavy |
+| `lead-dev` | Lead Developer — architecture, cross-agent coordination | standard |
+| `product-manager` | Specs, backlog, acceptance criteria | lite |
+| `backend-dev` | APIs, services, databases | standard |
+| `frontend-dev` | UI, components, client state | standard |
+| `devops` | CI/CD, infra, deploys | standard |
+| `security` | Audits, threat modeling, blocks | heavy |
+| `qa` | Test plans, E2E, release gates | standard |
+| `data` | Pipelines, analytics, schemas | standard |
+| `docs` | Guides, API docs, ADRs | lite |
+| `mobile` | iOS, Android, React Native | standard |
+| `ai-ml` | LLMs, RAG, embeddings | heavy |
+
+Each agent has scoped read/write permissions, a default model tier, and an escalation path defined in its profile.
+
+---
+
+## Tiered Memory System
+
+Designed so 90% of sessions never read past Tier 0.
+
+| Tier | Load | Size | When |
+|------|------|------|------|
+| **Tier 0** | `MANIFEST.md` | ~200 tok | Always — self-sufficient snapshot with counters, last decisions, link index, backlinks, tag index |
+| **Tier 1** | agent profile + own state | ~400 tok | On `/focus` or agent-scoped task |
+| **Tier 2** | blockers / handoffs / decisions | ~500 tok | Only if MANIFEST flags signal you need them |
+| **Tier 3** | full logs, cross-agent states, reports | variable | Explicit fetch only — never speculative |
+
+MANIFEST is updated after **every** memory write, so it stays the single source of truth.
+
+---
+
+## Linking System (Obsidian-style)
+
+Every memory entry gets a stable ID. MANIFEST holds the forward + backlink + tag indices, so agents navigate in **O(1)** without grep.
+
+### Entry IDs
 
 ```
-.
-├── CLAUDE.md                          ← Global behavior protocol (auto-loaded by Claude Code)
-├── project.json                       ← Project definition: stack, agents, routing, railguards
-│
-├── agents/
-│   ├── _AGENT_TEMPLATE.md             ← Template for creating new agents
-│   ├── 01-cto.md                      ← CTO — strategic decisions, final escalation
-│   ├── 02-lead-dev.md                 ← Lead Developer — architecture, cross-agent coordination
-│   ├── 03-product-manager.md          ← Product Manager — specs, backlog, acceptance criteria
-│   ├── 04-backend-dev.md              ← Backend Developer — APIs, databases, services
-│   ├── 05-frontend-dev.md             ← Frontend Developer — UI, components, client state
-│   ├── 06-devops.md                   ← DevOps/SRE — CI/CD, infra, deployments
-│   ├── 07-security.md                 ← Security Engineer — audits, threat modeling, blocks
-│   ├── 08-qa.md                       ← QA Engineer — test plans, E2E, release gates
-│   ├── 09-data.md                     ← Data Engineer — pipelines, analytics, schemas
-│   ├── 10-docs.md                     ← Technical Writer — guides, API docs, ADRs
-│   ├── 11-mobile.md                   ← Mobile Developer — iOS, Android, React Native
-│   └── 12-ai-ml.md                   ← AI/ML Engineer — LLMs, RAG, embeddings
-│
-├── memory/
-│   ├── shared-context.md              ← Global project state (all agents read at start)
-│   ├── decisions.log                  ← Append-only decision log
-│   ├── handoff-queue.md               ← Cross-agent task queue
-│   ├── blockers.md                    ← Active blockers and impediments
-│   └── agent-states/
-│       └── <role>.state.md            ← Per-agent session state (resume context)
-│
-├── tools/
-│   ├── mcp-catalog.md                 ← MCP server recommendations + setup guide
-│   ├── code-boundaries.md             ← File ownership map + cross-agent rules
-│   ├── token-railguards.md            ← Anti-waste and anti-loop rules
-│   ├── custom-commands.md             ← Available slash commands and their behavior
-│   └── scaffold-templates/
-│       ├── nextjs.md                  ← Next.js 14 App Router scaffold
-│       ├── fastapi.md                 ← FastAPI + SQLAlchemy scaffold
-│       ├── node-api.md                ← Express + TypeScript scaffold
-│       ├── react-native.md            ← Expo React Native scaffold
-│       └── monorepo.md                ← Turborepo monorepo scaffold
-│
-└── reports/
-    ├── CHANGELOG.md                   ← Agent-authored changelog (living document)
-    ├── sprint-report.md               ← Sprint summaries by Product Manager
-    └── audit-log.md                   ← Security findings and resolutions
+DEC-20260416-001   ← decision
+BLK-20260416-003   ← blocker
+HDF-20260416-002   ← handoff
+CHG-20260416-007   ← changelog
+HFX-20260416-001   ← hotfix
+CHK-20260416-001   ← checkpoint
+AUD-20260416-001   ← audit finding
+MEM-20260416-001   ← memo
+SPR-20260416-001   ← sprint report
 ```
+
+### Wiki-links
+
+```
+[[DEC-20260416-001]]           → reference an entry
+[[BLK-20260412-003|migration]] → reference with custom label
+[[@backend-dev]]               → reference an agent
+[[#auth]]                      → reference a domain tag
+```
+
+### Example entry
+
+```
+[2026-04-16 14:30] DEC-20260416-001 [[@backend-dev]] #auth #db
+DECISION: JWT refresh via Redis sessions
+REASON: stateful revocation requirement from [[AUD-20260410-002]]
+SUPERSEDES: [[DEC-20260201-005]]
+REFERENCES: [[BLK-20260412-003]]
+```
+
+### Navigation
+
+```
+/link DEC-20260416-001   → full entry + backlinks + forward refs
+/link #auth              → all entries tagged #auth, grouped by kind
+/link @backend-dev       → agent profile + state + workload
+```
+
+### Domain tags (pre-registered)
+
+`#auth` `#db` `#api` `#frontend` `#backend` `#infra` `#ci` `#security` `#qa` `#data` `#docs` `#mobile` `#ai-ml` `#governance` `#perf` `#deps`
+
+Custom tags allowed — register in MANIFEST Tag Registry on first use. Every entry requires at least one tag.
+
+### Why it matters
+
+| Operation | Without linking | With linking | Saving |
+|-----------|----------------:|-------------:|-------:|
+| Resolve a reference | ~800 tok (grep + read) | ~40 tok (MANIFEST row) | ~95% |
+| Find all `#auth` entries | ~1,200 tok | ~30 tok | ~97% |
+| Check blocker impact | ~600 tok | ~25 tok | ~96% |
+| Cold nav (200 entries) | ~3,000 tok | ~800 tok | ~73% |
+
+Full spec: [`.hivemind/tools/linking.md`](.hivemind/tools/linking.md).
 
 ---
 
 ## Model Routing
 
-HiveMind Protocol routes tasks to different models based on complexity, keeping costs low while maintaining quality.
+```
+┌─────────┬──────────────────────────────┬────────────────────────────────┐
+│  Tier   │            Model             │          Use for               │
+├─────────┼──────────────────────────────┼────────────────────────────────┤
+│ lite    │ claude-haiku-4-5-20251001    │ reads, logs, status, formatting│
+│ standard│ claude-sonnet-4-6            │ code, debug, tests, reviews    │
+│ heavy   │ claude-opus-4-6              │ architecture, audits, RCAs     │
+└─────────┴──────────────────────────────┴────────────────────────────────┘
+```
 
-| Tier | Model | Use for |
-|------|-------|---------|
-| **Lite** | `claude-haiku-4-5-20251001` | Reading files, writing logs, status checks, formatting |
-| **Standard** | `claude-sonnet-4-6` | Writing code, debugging, tests, API design |
-| **Heavy** | `claude-opus-4-6` | Architecture, security audits, cross-system design |
-
-Configure model IDs in `project.json > routing`. Agents select the appropriate tier based on the task type rules defined there and in `CLAUDE.md`.
+Use `/route <task>` when unsure. Escalation rule: 3 failed attempts at a tier → escalate one tier up, log in `decisions.log`.
 
 ---
 
-## Token Compression
+## Token Compression — 4 Levels
 
-HiveMind Protocol uses a two-sided compression strategy inspired by [caveman](https://github.com/JuliusBrussee/caveman):
+Inspired by [caveman](https://github.com/JuliusBrussee/caveman). Full spec in `.hivemind/tools/token-compression.md`.
 
-| Side | Technique | Reduction |
-|------|-----------|-----------|
-| **Output** | Caveman communication rules — no filler, no preamble, execute before explaining | ~65% |
-| **Input** | Memory files written in compressed prose — drop articles, filler, hedging | ~46% per session |
+| Level | Reduction | When |
+|-------|-----------|------|
+| `normal` | 0% | Onboarding, tutorials, user-facing depth |
+| `lite` | ~40% | Human-facing technical — drop filler |
+| `heavy` | ~60% | Default agent-to-agent — drop articles |
+| `ultra` | ~75% | Memory writes, logs — abbr + arrows |
 
-In multi-agent systems, costs cascade: verbose output from agent A becomes input to agent B. Compression attacks both sides.
+**Abbreviation dictionary** (ultra): `db`, `auth`, `cfg`, `env`, `deps`, `infra`, `repo`, `fn`, `param`, `resp`, `req`, `var`, `prod`, `stg`, `dev`, `mig`, `creds`, `perf`, `txn`, `app`, `cmp`, `msg`, `ref`, `impl`, `tmp`, `notif`, `valid`, `sess`.
 
-**Three intensity levels** (set in `project.json > communication.default_intensity`):
+**Arrows**: `→` causes, `←` depends on, `↔` syncs, `⚠` warning, `✗` failed, `✓` done, `∅` idle.
 
-```
-lite  (~40%) → human-facing output, user explanations
-full  (~60%) → agent-to-agent communication (default)
-ultra (~75%) → memory writes, log entries, internal chains
-```
+**Auto-clarity suspension**: compression automatically stops for CRITICAL security warnings, irreversible ops, and order-sensitive sequences. Resumes after the critical section.
 
-**Auto-Clarity Exception**: compression is automatically suspended for security warnings and irreversible operations, then resumed. Safety is never sacrificed for brevity.
-
-Research shows brevity constraints don't just save money — they improve accuracy by reducing the hallucination surface area in long verbose responses.
+Switch per session: `/compress <level>`.
 
 ---
 
-## Getting Started
+## Slash Commands (appear in `/` dropdown)
 
-### 1. Scaffold your project
+### Lifecycle
+| Command | Tier | Purpose |
+|---------|------|---------|
+| `/init` | heavy | CTO onboarding form (run once per project) |
+| `/scaffold <template>` | standard | Generate project structure |
+| `/sprint` | lite | Generate sprint report |
+| `/deploy --env <env>` | standard | QA → Security → DevOps chain |
 
-**Option A — npx (recommended)**
-```bash
-npx create-hivemind-protocol my-project
-cd my-project
-```
+### Daily work
+| Command | Tier | Purpose |
+|---------|------|---------|
+| `/status` | lite | Cross-agent summary |
+| `/standup` | lite | Daily standup |
+| `/focus <agent>` | lite | Scope session to one agent |
+| `/handoff <from> <to> <task>` | lite | Formal handoff |
+| `/report <agent> <summary>` | lite | Append CHANGELOG |
+| `/decision <agent> <text>` | lite | Append decisions.log |
+| `/memo <text>` | lite | Quick one-liner note |
+| `/link <ref>` | lite | Resolve ID, `#tag`, or `@agent` (read-only) |
+| `/review <file>` | standard | Structured code review |
 
-**Option B — Clone or use as template**
-```bash
-git clone https://github.com/your-org/hivemind-protocol my-project
-cd my-project
-```
+### Incidents
+| Command | Tier | Purpose |
+|---------|------|---------|
+| `/blocker <desc>` | lite | Register blocker |
+| `/resolve <title>` | lite | Close blocker |
+| `/hotfix <desc>` | standard | Fast-track emergency fix |
+| `/audit --scope <scope>` | heavy | Security audit |
+| `/checkpoint --label <name>` | lite | Snapshot pre-risky-op |
 
-### 2. Configure your project
-Edit `project.json`:
-- Set `meta` (name, stack, team)
-- Set `agents.active` to the agents your project needs
-- Set `mcps.enabled` to the MCP servers you will use
-
-### 3. Initialize with Claude Code
-Open Claude Code in this directory and run:
-```
-/init
-```
-
-Or manually tell any agent to start:
-```
-You are the CTO agent. Read your profile at agents/01-cto.md and begin session initialization.
-```
-
-### 4. Enable MCPs (optional, Claude Code)
-Follow the setup guide in `tools/mcp-catalog.md` to configure MCP servers in your `~/.claude/settings.json`.
-
-### 5. Start working
-Each agent will:
-1. Read initialization files on session start
-2. Select the correct model tier for each task
-3. Update memory files as they work
-4. Log completed work to `reports/CHANGELOG.md`
+### Token hygiene
+| Command | Tier | Purpose |
+|---------|------|---------|
+| `/compact` | lite | Compress old memory into digest |
+| `/compress <level>` | lite | Change session compression |
+| `/digest [--since <days>]` | lite | Activity summary (no writes) |
+| `/reset-context [--keep <agent>]` | lite | Drop non-essential context |
+| `/route <task>` | lite | Suggest tier + owning agent |
 
 ---
 
-## Using with Other Models
+## Railguards
 
-HiveMind Protocol works with any LLM that can follow markdown instructions:
+Defined in `.hivemind/project.json > railguards`. Enforced globally by every agent.
 
-| Platform | How to load CLAUDE.md |
-|----------|-----------------------|
-| **Claude Code** | Auto-loaded from project root |
-| **API (any model)** | Include as `system` message or first `user` message |
-| **GPT / ChatGPT** | Paste into system prompt or Custom Instructions |
-| **Gemini** | Include in system instructions |
-| **Open-source (Ollama, etc.)** | Include in system prompt |
-
-For non-Claude models, replace `claude-haiku-*`, `claude-sonnet-*`, and `claude-opus-*` in `project.json > routing` with the equivalent model IDs for your provider.
+- **Anti-loop**: 3 attempts same approach → escalate + log
+- **Anti-waste**: no speculative reads, no "just-in-case" code, no adjacent refactors, no extra comments outside changed scope
+- **Destructive ops**: `DROP`, `DELETE`, `rm -rf`, `git push --force`, `terraform destroy` → log + confirm before run
+- **Forbidden code patterns**: `eval(`, `exec(`, `shell=True`, `innerHTML =`, inline passwords, etc.
+- **Framework protection**: `.hivemind/` is read-only to all non-governance operations
+- **Secret exposure**: never in logs, comments, or CHANGELOG
 
 ---
 
-## Key Commands
+## Multi-Model Support
 
-| Command | Description | Model Tier |
-|---------|-------------|-----------|
-| `/init` | Configure the project and initialize all agents | standard |
-| `/status` | Show current state of all agents | lite |
-| `/focus <agent>` | Scope session to a specific agent | lite |
-| `/standup` | Daily standup summary across all agents | lite |
-| `/checkpoint [--label]` | Snapshot state before risky operations | lite |
-| `/handoff <from> <to> <task>` | Transfer a task between agents | lite |
-| `/report <agent> <summary>` | Log to CHANGELOG | lite |
-| `/blocker <description>` | Register a blocker | lite |
-| `/resolve <blocker-title>` | Close an active blocker | lite |
-| `/decision <agent> <text>` | Log a decision | lite |
-| `/review <file>` | Structured code review by owning agent | standard |
-| `/hotfix <description>` | Emergency fix workflow | standard |
-| `/deploy [--env]` | Formalize QA → Security → DevOps handoff | standard |
-| `/scaffold <template>` | Generate project structure | standard |
-| `/audit [--scope <scope>]` | Run security audit | heavy |
-| `/sprint` | Generate sprint report | lite |
+| Platform | How to load |
+|----------|-------------|
+| **Claude Code** | Auto-loaded from `CLAUDE.md` |
+| **API (Claude/GPT/Gemini)** | Include CLAUDE.md as system prompt |
+| **Ollama / local** | Include CLAUDE.md in system prompt |
+
+For non-Claude models, replace `claude-haiku-*`, `claude-sonnet-*`, `claude-opus-*` in `.hivemind/project.json > routing` with equivalent IDs (e.g. `gpt-4o`, `gemini-2.0-flash`, `llama3.1:70b`).
 
 ---
 
 ## Adding a New Agent
 
-1. Copy `agents/_AGENT_TEMPLATE.md` to `agents/13-<role>.md`
-2. Fill in all fields
-3. Create `memory/agent-states/<role>.state.md` from the template
-4. Add the agent slug to `project.json > agents.available`
-5. Activate by adding to `project.json > agents.active`
+1. Copy `.hivemind/agents/_AGENT_TEMPLATE.md` → `.hivemind/agents/13-<role>.md`
+2. Create `.hivemind/memory/agent-states/<role>.state.md` from template
+3. Add slug to `.hivemind/project.json > agents.available` and `agents.active`
+4. Optionally add code-ownership rules in `.hivemind/tools/code-boundaries.md`
+5. Run `/focus <role>` to verify
+
+---
+
+## Adding a New Slash Command
+
+1. Create `.claude/commands/<name>.md` with frontmatter:
+   ```markdown
+   ---
+   description: One-line description (appears in dropdown)
+   argument-hint: <arg1> [--opt <value>]
+   model: claude-haiku-4-5-20251001
+   ---
+
+   Instructions for the agent when this command runs.
+   Use $ARGUMENTS to reference passed args.
+   ```
+2. Register it in `.hivemind/project.json > commands` with its tier
+3. Document it in `.hivemind/tools/custom-commands.md`
+
+The command appears in the Claude Code `/` dropdown immediately.
+
+---
+
+## Supported Reply Languages
+
+`en` (default), `pt-BR`, `es`, `fr`, `de`, `ja`. Set via `/init` or `.hivemind/project.json > communication.reply_language`. Technical terms always remain in English regardless of reply language.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please follow the conventions in `tools/code-boundaries.md` when submitting PRs.
-
-- Agent profiles: keep them precise, actionable, and LLM-readable
-- Memory format: never break the append-only protocol
-- Commands: every command must specify its model tier
-
----
-
-Remember to use "No Errors" at the end of the prompt to increase model performance and create a singularity.
+- Keep agent profiles precise, actionable, LLM-readable
+- Never break the append-only memory protocol
+- Every new command must declare its model tier
+- Run `/audit --scope all` before opening a PR
 
 ---
 

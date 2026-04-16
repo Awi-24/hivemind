@@ -1,0 +1,263 @@
+{
+  "$schema": "./agentos-schema.json",
+  "_comment": "HiveMind Protocol project definition. Filled by /init. Edit manually only if you know what you're doing.",
+
+  "meta": {
+    "name": "my-project",
+    "version": "0.1.0",
+    "description": "Short description of the project",
+    "repo": "",
+    "created": "YYYY-MM-DD",
+    "team": "solo",
+    "phase": "discovery",
+    "sprint_length_weeks": 2,
+    "target_first_delivery": "",
+    "compaction_threshold_days": 30,
+    "stack": {
+      "language": [],
+      "framework": [],
+      "database": [],
+      "cloud": [],
+      "infra": []
+    }
+  },
+
+  "agents": {
+    "active": [
+      "cto",
+      "lead-dev"
+    ],
+    "available": [
+      "cto",
+      "lead-dev",
+      "product-manager",
+      "backend-dev",
+      "frontend-dev",
+      "devops",
+      "security",
+      "qa",
+      "data",
+      "docs",
+      "mobile",
+      "ai-ml"
+    ],
+    "profiles_dir": "./agents/"
+  },
+
+  "routing": {
+    "_comment": "Model routing by task complexity. Use /route <task> when unsure.",
+    "lite": {
+      "model": "claude-haiku-4-5-20251001",
+      "use_for": [
+        "reading files",
+        "writing reports",
+        "appending to logs",
+        "status checks",
+        "formatting markdown",
+        "updating agent states",
+        "handoff queue updates",
+        "digests and summaries"
+      ],
+      "max_tokens": 4096
+    },
+    "standard": {
+      "model": "claude-sonnet-4-6",
+      "use_for": [
+        "writing code",
+        "debugging",
+        "implementing logic",
+        "API design",
+        "writing tests",
+        "code reviews",
+        "PR descriptions",
+        "CI/CD configuration"
+      ],
+      "max_tokens": 8192
+    },
+    "heavy": {
+      "model": "claude-opus-4-6",
+      "use_for": [
+        "architecture decisions",
+        "security audits",
+        "complex refactors spanning 3+ systems",
+        "cross-team design sessions",
+        "breaking change analysis",
+        "incident root cause analysis",
+        "multi-agent orchestration planning",
+        "CTO onboarding (/init)"
+      ],
+      "max_tokens": 16384
+    },
+    "default_tier": "standard",
+    "escalation_rule": "If a standard task fails 3 times, escalate to heavy and log in decisions.log"
+  },
+
+  "railguards": {
+    "max_loop_depth": 3,
+    "max_file_iterations_per_session": 5,
+    "require_memory_read_before_write": true,
+    "require_report_on_change": true,
+    "require_confirmation_before_destructive": true,
+    "destructive_mode": "strict",
+    "forbidden_operations": [
+      "rm -rf",
+      "DROP TABLE",
+      "DROP DATABASE",
+      "TRUNCATE",
+      "git push --force",
+      "git reset --hard",
+      "kubectl delete namespace",
+      "terraform destroy"
+    ],
+    "forbidden_patterns_in_code": [
+      "eval(",
+      "exec(",
+      "shell=True",
+      "innerHTML =",
+      "dangerouslySetInnerHTML",
+      "password.*=.*['\"][^'\"]+['\"]"
+    ],
+    "on_loop_limit": "log to .hivemind/memory/blockers.md and escalate to CTO",
+    "on_forbidden_operation": "stop immediately, log to .hivemind/memory/blockers.md, notify user",
+    "protect_framework_dir": ".hivemind/"
+  },
+
+  "communication": {
+    "_comment": "4-level compression. Full spec: .hivemind/tools/token-compression.md",
+    "default_intensity": "heavy",
+    "reply_language": "en",
+    "supported_languages": ["en", "pt-BR", "es", "fr", "de", "ja"],
+    "intensity_levels": {
+      "normal": {
+        "token_reduction": "0%",
+        "rules": "Full clarity. No pleasantries. Used for onboarding, tutorials, user-facing explanations in depth.",
+        "use_for": ["first-time onboarding", "tutorials", "beginner error explanations"]
+      },
+      "lite": {
+        "token_reduction": "~40%",
+        "rules": "Drop filler and pleasantries. Keep articles and full sentences.",
+        "use_for": ["human-facing technical replies", "user-visible output", "external docs"]
+      },
+      "heavy": {
+        "token_reduction": "~60%",
+        "rules": "Drop articles. Fragments allowed. No preamble/postamble.",
+        "use_for": ["standard agent-to-agent", "code reviews", "handoffs"]
+      },
+      "ultra": {
+        "token_reduction": "~75%",
+        "rules": "Abbreviations allowed (db/auth/cfg/deps). Arrows for causality (→←↔). Maximum density.",
+        "use_for": ["memory file writes", "log entries", "standup output", "internal agent chains"]
+      }
+    },
+    "auto_clarity_exception": {
+      "enabled": true,
+      "triggers": [
+        "security warnings severity HIGH or CRITICAL",
+        "irreversible operations: DROP, DELETE, rm -rf, force push, amending published commits",
+        "multi-step sequences with order-sensitive steps",
+        "escalations to the user"
+      ],
+      "marker_start": "[COMPRESSION SUSPENDED — CRITICAL]",
+      "marker_end": "[COMPRESSION RESUMED]"
+    },
+    "memory_compression": {
+      "enabled": true,
+      "level": "ultra",
+      "target_reduction": "~46%",
+      "preserve": ["code blocks", "file paths", "URLs", "technical terms", "library names", "dates", "version numbers", "model IDs", "env var names", "headings"],
+      "drop": ["articles", "filler", "hedging", "meta-phrases", "pleasantries"]
+    },
+    "per_agent_overrides": {
+      "_comment": "Override default_intensity per agent slug. Leave empty to use default.",
+      "cto": "lite",
+      "product-manager": "lite",
+      "docs": "normal"
+    }
+  },
+
+  "commands": {
+    "_comment": "Slash commands. Implementation lives in .claude/commands/*.md.",
+    "init":          { "syntax": "/init",                                                      "tier": "heavy",    "description": "CTO onboarding form" },
+    "status":        { "syntax": "/status",                                                    "tier": "lite",     "description": "Summary of all agents" },
+    "standup":       { "syntax": "/standup",                                                   "tier": "lite",     "description": "Daily standup across active agents" },
+    "focus":         { "syntax": "/focus <agent>",                                             "tier": "lite",     "description": "Scope session to one agent" },
+    "handoff":       { "syntax": "/handoff <from> <to> <task>",                                "tier": "lite",     "description": "Formal agent handoff" },
+    "report":        { "syntax": "/report <agent> <summary>",                                  "tier": "lite",     "description": "Append CHANGELOG entry" },
+    "decision":      { "syntax": "/decision <agent> <text>",                                   "tier": "lite",     "description": "Append decisions.log entry" },
+    "memo":          { "syntax": "/memo <text>",                                               "tier": "lite",     "description": "Quick one-liner note" },
+    "link":          { "syntax": "/link <ID or #tag or @agent>",                               "tier": "lite",     "description": "Resolve reference via MANIFEST index" },
+    "review":        { "syntax": "/review <file> [--scope logic|security|style|all]",          "tier": "standard", "description": "Structured code review" },
+    "blocker":       { "syntax": "/blocker <desc> [--owner <agent>] [--severity <level>]",     "tier": "lite",     "description": "Register blocker" },
+    "resolve":       { "syntax": "/resolve <title> [--resolution <text>]",                     "tier": "lite",     "description": "Close blocker" },
+    "hotfix":        { "syntax": "/hotfix <desc> [--severity critical|high]",                  "tier": "standard", "description": "Emergency fix fast-track" },
+    "audit":         { "syntax": "/audit [--scope files|deps|secrets|all]",                    "tier": "heavy",    "description": "Security audit" },
+    "checkpoint":    { "syntax": "/checkpoint [--label <name>]",                               "tier": "lite",     "description": "Snapshot state pre-risky-op" },
+    "scaffold":      { "syntax": "/scaffold <template> [--name <name>] [--out <dir>]",         "tier": "standard", "description": "Bootstrap project from template" },
+    "sprint":        { "syntax": "/sprint [--week YYYY-Www]",                                  "tier": "lite",     "description": "Generate sprint report" },
+    "deploy":        { "syntax": "/deploy [--env staging|production]",                         "tier": "standard", "description": "Formal deploy handoff chain" },
+    "compact":       { "syntax": "/compact [--older-than <days>] [--file <target>]",           "tier": "lite",     "description": "Compress old memory into digest" },
+    "compress":      { "syntax": "/compress normal|lite|heavy|ultra",                          "tier": "lite",     "description": "Switch session compression level" },
+    "digest":        { "syntax": "/digest [--since <days>]",                                   "tier": "lite",     "description": "Ultra-compressed activity summary" },
+    "reset-context": { "syntax": "/reset-context [--keep <agent>]",                            "tier": "lite",     "description": "Drop non-essential context" },
+    "route":         { "syntax": "/route <task-description>",                                  "tier": "lite",     "description": "Suggest model tier + owning agent" }
+  },
+
+  "mcps": {
+    "_comment": "MCP servers used in this project. See .hivemind/tools/mcp-catalog.md for setup.",
+    "enabled": [],
+    "available": [
+      "github",
+      "filesystem",
+      "postgres",
+      "redis",
+      "notion",
+      "slack",
+      "jira",
+      "docker",
+      "aws",
+      "vercel",
+      "linear"
+    ]
+  },
+
+  "memory": {
+    "manifest":         "./memory/MANIFEST.md",
+    "shared_context":   "./memory/shared-context.md",
+    "decisions_log":    "./memory/decisions.log",
+    "handoff_queue":    "./memory/handoff-queue.md",
+    "blockers":         "./memory/blockers.md",
+    "agent_states_dir": "./memory/agent-states/",
+    "tier_rules": {
+      "tier_0": "MANIFEST.md only — always loaded",
+      "tier_1": "agent profile + own state — on /focus or agent-scoped task",
+      "tier_2": "blockers.md, handoff-queue.md, decisions.log — flag-triggered by MANIFEST counters",
+      "tier_3": "full logs, cross-agent states, reports — explicit fetch only"
+    }
+  },
+
+  "reports": {
+    "changelog":     "./reports/CHANGELOG.md",
+    "sprint_report": "./reports/sprint-report.md",
+    "audit_log":     "./reports/audit-log.md"
+  },
+
+  "customization": {
+    "_comment": "Project-specific overrides for agent behavior",
+    "code_style": {
+      "indent": 2,
+      "quotes": "double",
+      "trailing_comma": true,
+      "line_length": 100
+    },
+    "git": {
+      "branch_pattern": "feat/<agent>/<short-description>",
+      "commit_pattern": "<type>(<agent>): <description>",
+      "require_pr_review": true
+    },
+    "environments": {
+      "development": { "auto_seed_db": true,  "mock_external_services": true  },
+      "staging":     { "auto_seed_db": false, "mock_external_services": false },
+      "production":  { "read_only_agents": ["qa", "docs", "data"] }
+    }
+  }
+}
