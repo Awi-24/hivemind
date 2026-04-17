@@ -1,0 +1,37 @@
+{
+  "name": "create-hivemind-protocol",
+  "version": "1.1.0",
+  "description": "HiveMind Protocol — multi-agent context and behavior framework for AI-assisted software development",
+  "bin": {
+    "create-hivemind-protocol": "./bin/create.js"
+  },
+  "files": [
+    "bin",
+    ".hivemind",
+    ".claude",
+    "assets",
+    "CLAUDE.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude",
+    "ai-agents",
+    "llm",
+    "multi-agent",
+    "scaffolder",
+    "claude-code",
+    "agentic",
+    "template"
+  ],
+  "author": "Awi-24",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Awi-24/HiveMind-Protocol.git"
+  },
+  "homepage": "https://github.com/Awi-24/HiveMind-Protocol#readme"
+}

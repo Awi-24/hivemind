@@ -1,13 +1,17 @@
+# npm / node
 node_modules/
 *.tgz
+npm-debug.log*
+
+# OS
 .DS_Store
 Thumbs.db
 
-# local test scaffolds
+# local test scaffolds (output of bin/create.js)
 hmp-test/
 test-out/
 test-*/
 my-*/
-package.json
-bin/create.js
+
+# Claude Code local overrides
 .claude/settings.local.json
