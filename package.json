@@ -7,12 +7,13 @@
   },
   "files": [
     "bin",
-    ".hivemind",
+    ".hivemind/agents",
+    ".hivemind/docs",
+    ".hivemind/tools",
+    ".hivemind/project.json",
     ".claude",
     "assets",
-    "CLAUDE.md",
-    "README.md",
-    "LICENSE"
+    "CLAUDE.md"
   ],
   "keywords": [
     "claude",
@@ -25,7 +26,7 @@
     "template"
   ],
   "author": "Awi-24",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "engines": {
     "node": ">=16"
   },
