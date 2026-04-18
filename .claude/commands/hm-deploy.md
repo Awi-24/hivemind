@@ -15,7 +15,7 @@ Preflight:
 2. Read `.hivemind/memory/MANIFEST.md` for audit status — block if last audit > 7 days and env=production
 
 Execute:
-1. Create sequential handoffs in `.hivemind/memory/handoff-queue.md`:
+1. Create sequential handoffs in `.hivemind/memory/hm-handoff-queue.md`:
    ```
    <agent> → qa       | verify build + smoke tests for <env>
    qa → security      | security sign-off for <env> deploy

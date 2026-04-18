@@ -6,7 +6,7 @@ model: claude-sonnet-4-6
 
 Args: $ARGUMENTS
 
-Templates available in `.hivemind/tools/scaffold-templates/`:
+Templates available in `.hivemind/tools/hm-scaffold-templates/`:
 - `nextjs` — Next.js 14+ App Router + TypeScript
 - `fastapi` — FastAPI + SQLAlchemy + Alembic
 - `node-api` — Node + Express + TypeScript
@@ -14,7 +14,7 @@ Templates available in `.hivemind/tools/scaffold-templates/`:
 - `monorepo` — Turborepo with apps/ + packages/
 
 Flow:
-1. Read `.hivemind/tools/scaffold-templates/<template>.md`
+1. Read `.hivemind/tools/hm-scaffold-templates/<template>.md`
 2. Confirm target dir (default: repo root; override with `--out`)
 3. Generate files per template spec — do NOT write inside `.hivemind/`
 4. Append `.hivemind/memory/decisions.log`:

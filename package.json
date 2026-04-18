@@ -7,6 +7,10 @@
   },
   "files": [
     "bin",
+    "hooks",
+    "skills",
+    "platforms",
+    ".claude-plugin",
     ".hivemind/agents",
     ".hivemind/docs",
     ".hivemind/tools",

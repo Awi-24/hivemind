@@ -75,4 +75,4 @@ Output uses current session compression (default heavy). Entry body inside the d
 If the ID/tag/agent cannot be resolved via MANIFEST:
 1. Warn: MANIFEST may be stale
 2. Grep the memory files for the literal ID string as fallback
-3. If still not found → report explicitly: `not found: <ref>. MANIFEST may need rebuild — run /compact or check update log.`
+3. If still not found → report explicitly: `not found: <ref>. MANIFEST may need rebuild — run /hm-compact or check update log.`

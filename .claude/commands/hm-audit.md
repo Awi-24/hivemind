@@ -23,7 +23,7 @@ One `AUD-<YYYYMMDD>-<NN>` per **finding** (not per audit run). Read MANIFEST, in
 
 **Compression SUSPENDED for CRITICAL/HIGH findings.**
 
-Append to `.hivemind/reports/audit-log.md`:
+Append to `.hivemind/reports/hm-audit-log.md`:
 ```
 ## Audit run — YYYY-MM-DD | scope=<scope> | agent=[[@<agent>]]
 
@@ -44,7 +44,7 @@ Append to `.hivemind/reports/audit-log.md`:
 1. Append rows to `## Link Index` (one per finding)
 2. Tag Index: every AUD carries `#security` plus domain tag
 3. Set `audit_last_run` counter to today
-4. For each CRITICAL finding → auto-generate a `BLK-...` entry linking `[[AUD-...]]` (reuse `/blocker` logic)
+4. For each CRITICAL finding → auto-generate a `BLK-...` entry linking `[[AUD-...]]` (reuse `/hm-blocker` logic)
 5. Append to `## Update log`
 
 ### Output

@@ -1,5 +1,8 @@
 # HiveMind Protocol — Global Behavior Protocol
 
+> **FRAMEWORK CONSTRAINT — read first, every session:**
+> `.hivemind/` = governance infrastructure. Project code → `src/` or repo root. NEVER write project code inside `.hivemind/`. All HiveMind commands use `/hm-*` prefix.
+
 > **Auto-loaded by Claude Code.** Defines behavior, memory, model routing, commands, and communication rules for every agent operating under HiveMind in this project.
 >
 > **Communication default**: terse like smart caveman. Technical substance stays exact. Only fluff dies.
@@ -12,16 +15,17 @@
 
 ### Hard rules
 
-- **Never treat `.hivemind/` as the project.** It is infrastructure. Do not put project code there. Do not treat framework files as deliverables.
+- **`.hivemind/` = infrastructure ONLY.** Do not put project code there. Do not treat framework files as deliverables.
 - **Never write project code inside `.hivemind/`.** All product code goes to the repo root (or the user's chosen source directory).
 - **Never modify `.hivemind/` files casually.** These are governance files — changes require a decision log entry.
 - **`.hivemind/` contains**: agents, memory, reports, tools, `project.json`. Nothing else belongs there.
+- **All commands use `/hm-*` prefix** — never use bare `/init`, `/status`, etc. (those belong to other tools).
 
 ### Repo layout (expected)
 
 ```
 <project-root>/
-├── .hivemind/                ← framework (this file references it)
+├── .hivemind/                ← framework infrastructure (NOT the project)
 │   ├── agents/
 │   ├── memory/
 │   ├── reports/
@@ -29,14 +33,17 @@
 │   └── project.json
 ├── .claude/
 │   ├── settings.json
-│   └── commands/             ← slash commands surfaced in the dropdown
+│   └── commands/             ← /hm-* slash commands surfaced in the dropdown
 ├── CLAUDE.md                 ← this file
+├── AGENTS.md                 ← OpenAI Codex instructions (if used)
+├── .windsurfrules            ← Windsurf instructions (if used)
+├── .cursor/rules/            ← Cursor instructions (if used)
 └── <your project code>       ← src/, apps/, services/, etc.
 ```
 
 ### First-session trigger (mandatory)
 
-On session start, read `.hivemind/project.json`. If `meta.name == "my-project"` or empty → the project is **uninitialized**. Immediately adopt **CTO posture** and run `/init` (see `.claude/commands/init.md`). Do not start any other work before init is complete.
+On session start, read `.hivemind/project.json`. If `meta.name == "my-project"` or empty → the project is **uninitialized**. Immediately adopt **CTO posture** and run `/hm-init` (see `.claude/commands/hm-init.md`). Ask the user about **their** project — the framework is already installed. Do not start any other work before init is complete.
 
 ---
 
@@ -61,7 +68,7 @@ If MANIFEST is fresh (last update < 24h) and complete, **stop reading — start 
 
 ### Tier 1 — ROLE-SPECIFIC (conditional, ~400 tokens)
 
-Only if you are focused on a specific agent role (`/focus <agent>` or agent-scoped task):
+Only if you are focused on a specific agent role (`/hm-focus <agent>` or agent-scoped task):
 1. `.hivemind/agents/<n>-<your-role>.md` — profile (first session only; cached thereafter)
 2. `.hivemind/memory/agent-states/<your-role>.state.md` — your last state
 
@@ -69,7 +76,7 @@ Only if you are focused on a specific agent role (`/focus <agent>` or agent-scop
 
 Only load if MANIFEST flags indicate you need them:
 - `.hivemind/memory/blockers.md` — IF `MANIFEST.active_blockers > 0` AND one is owned by you OR blocks your task
-- `.hivemind/memory/handoff-queue.md` — IF `MANIFEST.pending_handoffs.<your-slug> > 0`
+- `.hivemind/memory/hm-handoff-queue.md` — IF `MANIFEST.pending_handoffs.<your-slug> > 0`
 - `.hivemind/memory/decisions.log` — read only the **specific lines** MANIFEST points to for your domain (not the whole file)
 
 ### Tier 3 — EXPLICIT FETCH (cost-aware, never speculative)
@@ -78,13 +85,13 @@ Load only when the task **actively requires** it:
 - `.hivemind/memory/decisions.log` full history — only when re-evaluating a prior architectural decision
 - `.hivemind/memory/blockers.md` resolved section — only when diagnosing a recurring issue
 - Other agents' state files — only when resuming their work after a handoff
-- `.hivemind/reports/CHANGELOG.md`, `sprint-report.md` — only for sprint/audit tasks
+- `.hivemind/reports/CHANGELOG.md`, `sprint-report.md` — only for sprint/hm-audit tasks
 - `.hivemind/project.json` — only when modifying stack, routing, railguards, or active agents
 
 ### Anti-patterns (do not do)
 
 - Reading `decisions.log` "to see the whole picture" when MANIFEST already summarizes it
-- Reading every agent state file at session start — only read on `/focus` or `/standup`
+- Reading every agent state file at session start — only read on `/hm-focus` or `/hm-standup`
 - Re-reading files already loaded this session unless they were modified
 - Loading Tier 2/3 files "just in case"
 
@@ -113,7 +120,7 @@ When spawning a subagent or delegating, mark the tier:
 [MODEL: heavy]    → redesign auth architecture for multi-tenancy
 ```
 
-Use `/route <task>` to auto-classify when unsure.
+Use `/hm-route <task>` to auto-classify when unsure.
 
 ### Classification rules
 
@@ -137,7 +144,7 @@ Use `/route <task>` to auto-classify when unsure.
 | `heavy` | ~60% | Default agent-to-agent — drop articles, fragments OK |
 | `ultra` | ~75% | Memory writes, logs, internal chains — abbreviations + arrows |
 
-Default from `project.json > communication.default_intensity`. Override per session with `/compress <level>`.
+Default from `project.json > communication.default_intensity`. Override per session with `/hm-compress <level>`.
 
 ### Core 10 rules (active in lite/heavy/ultra)
 
@@ -253,7 +260,7 @@ MANIFEST holds three indices updated atomically with every memory write:
 - Resolving a reference → MANIFEST lookup (O(1)), not grep
 - Resolving a blocker → read Backlinks first; warn if dependents are active
 - Superseding a decision → `SUPERSEDES: [[OLD-ID]]` in the new entry
-- Use `/link <ID|#tag|@agent>` for navigation without writes
+- Use `/hm-link <ID|#tag|@agent>` for navigation without writes
 
 ### Token savings
 
@@ -279,7 +286,7 @@ Format:
 - **Model used**: <lite|standard|heavy>
 ```
 
-Trigger with `/report <agent> <summary>`.
+Trigger with `/hm-report <agent> <summary>`.
 
 ---
 
@@ -300,8 +307,8 @@ Limits in `.hivemind/project.json > railguards` are **mandatory**. Additionally:
 - Don't refactor adjacent code outside scope
 - Don't create extra files "for the future"
 - Use Lite model for reads/reports to conserve budget
-- Use `/digest` or `/status` instead of re-reading logs
-- Use `/reset-context` when switching focus mid-session
+- Use `/hm-digest` or `/hm-status` instead of re-reading logs
+- Use `/hm-reset-context` when switching focus mid-session
 
 ### Code boundaries
 
@@ -319,12 +326,12 @@ Limits in `.hivemind/project.json > railguards` are **mandatory**. Additionally:
 ## 7. Handoff Protocol
 
 When passing a task to another agent:
-1. Append to `.hivemind/memory/handoff-queue.md`
+1. Append to `.hivemind/memory/hm-handoff-queue.md`
 2. Update your `.hivemind/memory/agent-states/<role>.state.md`
 3. Append decision to `.hivemind/memory/decisions.log`
 4. Update MANIFEST handoff counter
 
-Use `/handoff <from> <to> <task>` to automate.
+Use `/hm-handoff <from> <to> <task>` to automate.
 
 Handoff format:
 ```
@@ -364,60 +371,78 @@ All commands are registered in `.claude/commands/*.md` (surfaced in the Claude C
 
 | Command | Tier | Function |
 |---------|------|----------|
-| `/init` | heavy | Onboarding form (CTO posture). Run once at project start |
-| `/scaffold <template>` | standard | Generate project structure from template |
-| `/sprint` | lite | Generate sprint report |
-| `/deploy --env <env>` | standard | Formal QA → Security → DevOps deploy chain |
+| `/hm-init` | heavy | Onboarding form (CTO posture). Run once at project start |
+| `/hm-scaffold <template>` | standard | Generate project structure from template |
+| `/hm-sprint` | lite | Generate sprint report |
+| `/hm-deploy --env <env>` | standard | Formal QA → Security → DevOps deploy chain |
 
 ### Daily work
 
 | Command | Tier | Function |
 |---------|------|----------|
-| `/status` | lite | Summary of all agents |
-| `/standup` | lite | Daily standup across active agents |
-| `/focus <agent>` | lite | Scope session to one agent |
-| `/handoff <from> <to> <task>` | lite | Formal handoff |
-| `/report <agent> <summary>` | lite | Append CHANGELOG entry |
-| `/decision <agent> <text>` | lite | Append decisions.log entry |
-| `/memo <text>` | lite | Quick one-liner note |
-| `/link <ref>` | lite | Resolve ID / #tag / @agent (read-only) |
-| `/review <file>` | standard | Structured code review |
+| `/hm-status` | lite | Summary of all agents |
+| `/hm-standup` | lite | Daily standup across active agents |
+| `/hm-focus <agent>` | lite | Scope session to one agent |
+| `/hm-handoff <from> <to> <task>` | lite | Formal handoff |
+| `/hm-report <agent> <summary>` | lite | Append CHANGELOG entry |
+| `/hm-decision <agent> <text>` | lite | Append decisions.log entry |
+| `/hm-memo <text>` | lite | Quick one-liner note |
+| `/hm-link <ref>` | lite | Resolve ID / #tag / @agent (read-only) |
+| `/hm-review <file>` | standard | Structured code review |
 
 ### Incidents / emergencies
 
 | Command | Tier | Function |
 |---------|------|----------|
-| `/blocker <desc>` | lite | Register blocker |
-| `/resolve <title>` | lite | Close blocker |
-| `/hotfix <desc>` | standard | Fast-track emergency fix |
-| `/audit --scope <scope>` | heavy | Security audit |
-| `/checkpoint --label <name>` | lite | Snapshot state pre-risky-op |
+| `/hm-blocker <desc>` | lite | Register blocker |
+| `/hm-resolve <title>` | lite | Close blocker |
+| `/hm-hotfix <desc>` | standard | Fast-track emergency fix |
+| `/hm-audit --scope <scope>` | heavy | Security audit |
+| `/hm-checkpoint --label <name>` | lite | Snapshot state pre-risky-op |
 
 ### Token hygiene
 
 | Command | Tier | Function |
 |---------|------|----------|
-| `/compact` | lite | Compress old memory into digest |
-| `/compress <level>` | lite | Switch session compression level |
-| `/digest` | lite | Ultra-compressed activity summary (no writes) |
-| `/reset-context` | lite | Drop non-essential context |
-| `/route <task>` | lite | Suggest model tier + owning agent |
+| `/hm-compact` | lite | Compress old memory into digest |
+| `/hm-compress <level>` | lite | Switch session compression level |
+| `/hm-digest` | lite | Ultra-compressed activity summary (no writes) |
+| `/hm-reset-context` | lite | Drop non-essential context |
+| `/hm-route <task>` | lite | Suggest model tier + owning agent |
 
 ---
 
-## 10. Multi-Model Compatibility
+## 10. Multi-Platform Compatibility
 
-Designed to work with any LLM capable of following markdown instructions.
+HiveMind works with any AI coding tool. Platform instruction files in `platforms/` are distributed to correct project locations by `npx create-hivemind-protocol`.
 
-- **Claude Code**: this file auto-loads; model routing via subagent flags
-- **GPT / Gemini / other**: rename to `SYSTEM_PROMPT.md` and include via system prompt; model routing enforced by orchestrator
-- MCP entries in `.hivemind/tools/mcp-catalog.md` include non-Claude alternatives
+| Platform | Instruction file | Installed to |
+|----------|-----------------|--------------|
+| **Claude Code** | `CLAUDE.md` (this file) | auto-loaded |
+| **Cursor** | `platforms/cursor/hivemind.mdc` | `.cursor/rules/hivemind.mdc` |
+| **Windsurf** | `platforms/windsurf/windsurfrules` | `.windsurfrules` |
+| **GitHub Copilot** | `platforms/copilot/copilot-instructions.md` | `.github/copilot-instructions.md` |
+| **OpenAI Codex** | `platforms/codex/AGENTS.md` | `AGENTS.md` |
+| **Universal** (Aider, Continue, etc.) | `platforms/universal/AI_INSTRUCTIONS.md` | `AI_INSTRUCTIONS.md` |
+
+### Hook-based enforcement (Claude Code only)
+
+`hooks/hivemind-activate.js` (SessionStart) injects critical framework rules into system context — not just document context. Rules persist across all turns. Other platforms rely on their instruction files serving the same role.
+
+Install as plugin:
+```bash
+claude plugin install Awi-24/HiveMind-Protocol
+```
+
+Or wire hooks manually in `~/.claude/settings.json` — see `hooks/` directory for scripts.
+
+- MCP catalog: `.hivemind/tools/mcp-catalog.md`
 
 ---
 
 ## 11. Reply Language
 
-Set via `/init` or `.hivemind/project.json > communication.reply_language`. Supported: `en`, `pt-BR`, `es`, `fr`, `de`, `ja`.
+Set via `/hm-init` or `.hivemind/project.json > communication.reply_language`. Supported: `en`, `pt-BR`, `es`, `fr`, `de`, `ja`.
 
 Compression rules apply regardless of language — the 10 rules are language-agnostic (articles = `a/an/the` in EN, `o/a/os/as/um/uma` in PT, etc.).
 

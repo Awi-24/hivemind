@@ -16,7 +16,7 @@ Parse as `<from> <to> <task>`. Extract `#tags` and `[[ID]]` references from task
 
 ### Write entry
 
-Append to `.hivemind/memory/handoff-queue.md`:
+Append to `.hivemind/memory/hm-handoff-queue.md`:
 
 ```
 HDF-<YYYYMMDD>-<NN> [YYYY-MM-DD HH:MM] <tags>

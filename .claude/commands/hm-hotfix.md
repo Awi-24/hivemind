@@ -73,4 +73,4 @@ Checklist:
 ═══════════════════════════════════════════
 ```
 
-Close flow with `/resolve HFX-<ID>` when done.
+Close flow with `/hm-resolve HFX-<ID>` when done.

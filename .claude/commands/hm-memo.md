@@ -6,7 +6,7 @@ model: claude-haiku-4-5-20251001
 
 Args: $ARGUMENTS
 
-Low-ceremony append. Unlike `/decision`, this does NOT trigger domain routing. Use for casual notes ("remember to…", "idea: …").
+Low-ceremony append. Unlike `/hm-decision`, this does NOT trigger domain routing. Use for casual notes ("remember to…", "idea: …").
 
 ### Generate ID
 

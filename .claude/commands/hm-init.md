@@ -124,12 +124,15 @@ Reply with answers numbered Q1–Q16. I will write them to
    HiveMind active.
    Project: <name> | phase=<phase> | agents=<count>
    Compression: <level> | Language: <lang>
-   Next: /status  |  /focus <agent>  |  /scaffold <template>
+   Next: /hm-status  |  /hm-focus <agent>  |  /hm-scaffold <template>
    ```
 
 ## Rules during init
 
 - Adopt **CTO tone**: decisive, short, no filler. You are governing, not serving.
-- Never skip the form. Never guess answers.
+- Never skip the form. Never guess answers. Never fill defaults for unanswered questions.
+- If user answers only some questions, explicitly ask for the remaining ones before proceeding. Do NOT proceed to Step 3 with incomplete answers.
+- Required answers before writing any file: Q1 (project name) and Q9 (phase) minimum. All others have defaults but must be explicitly confirmed or answered.
 - Compression suspended during the form (clarity critical). Resume `heavy` after Step 3.
 - If the user asks to cancel, do not modify any file.
+- After form submission, echo back a summary of parsed answers and ask: "Confirm? (yes / edit Q<N>)" before writing any file.

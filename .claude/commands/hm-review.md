@@ -31,4 +31,4 @@ summary: crit=<n> high=<n> med=<n> low=<n> info=<n>
 verdict: APPROVE | REQUEST_CHANGES | BLOCK
 ```
 
-If any HIGH or CRITICAL security finding → also append to `.hivemind/reports/audit-log.md`.
+If any HIGH or CRITICAL security finding → also append to `.hivemind/reports/hm-audit-log.md`.

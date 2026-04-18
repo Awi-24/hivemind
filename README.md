@@ -4,46 +4,46 @@
 
 # HiveMind Protocol
 
-**A multi-agent context and behavior framework for AI-assisted software development.**
+**A multi-agent context and behavior framework for AI-assisted software development.**  
 **Drop it into any repo as `.hivemind/` — give your agents persistent memory, role discipline, and token hygiene.**
 
 ```bash
-npx create-hivemind-protocol
+npx create-hivemind-protocol my-project
 ```
 
-HiveMind is a **framework folder** (`.hivemind/`) you place at the root of any project. It turns any LLM coding assistant (Claude Code first-class, GPT / Gemini / Ollama compatible) into a governed multi-agent system with persistent memory, defined roles, behavioral railguards, and a 4-level token compression protocol — preventing hallucinations, context loss, and the classic agent failure modes: forgetting, looping, drifting, and burning tokens.
+HiveMind is a **framework folder** (`.hivemind/`) you place at the root of any project. It turns any AI coding assistant into a governed multi-agent system with persistent memory, defined roles, behavioral railguards, and a 4-level token compression protocol — preventing hallucinations, context loss, and the classic agent failure modes: forgetting, looping, drifting, and burning tokens.
+
+Works natively with **Claude Code** (plugin + hooks). Also supports **Cursor**, **Windsurf**, **GitHub Copilot**, **OpenAI Codex**, and **Gemini CLI** via platform-specific instruction files installed automatically by the scaffolder.
 
 ---
 
 ## Why HiveMind
 
-Typical pain points HiveMind solves:
-
 | Pain | HiveMind fix |
 |------|--------------|
 | Agent forgets project context every session | Tiered memory system (MANIFEST-led) |
-| Agent loops on the same failing approach | Anti-loop railguards (3-attempt limit → escalate) |
+| Agent loops on same failing approach | Anti-loop railguards (3-attempt limit → escalate) |
 | Agent burns tokens on filler and re-reads | 4-level compression + tier-gated file reads |
 | Agent touches files it shouldn't | Code-boundaries map per agent role |
 | Agent skips documentation | Append-only decisions + CHANGELOG protocol |
 | Agent does destructive ops silently | Confirmation gates + auto-clarity suspension |
-| `/init` does nothing useful | CTO posture + interactive onboarding form |
-| Custom slash commands don't show in dropdown | Native `.claude/commands/*.md` integration |
+| Commands collide with other tools | All HiveMind commands use `/hm-*` prefix |
+| Framework ≠ project confusion | SessionStart hook injects boundary rule as system context |
+| Instructions reset between sessions | Hook injection + MANIFEST Tier 0 persist across turns |
 
 ---
 
 ## Installation
 
-### Option A — Clone into your project
+### Option A — Claude Code plugin (recommended)
 
 ```bash
-cd my-project/
-git clone --depth 1 https://github.com/Awi-24/hivemind-protocol .hivemind-seed
-mv .hivemind-seed/.hivemind ./.hivemind
-mv .hivemind-seed/.claude ./.claude
-mv .hivemind-seed/CLAUDE.md ./CLAUDE.md
-rm -rf .hivemind-seed
+claude plugin install Awi-24/HiveMind-Protocol
+npx create-hivemind-protocol my-project
+cd my-project
 ```
+
+The plugin wires `hooks/hivemind-activate.js` as a SessionStart hook — injects framework rules into system context so they persist across all turns, not just as document context.
 
 ### Option B — New project from template
 
@@ -52,30 +52,36 @@ npx create-hivemind-protocol my-project
 cd my-project
 ```
 
-### Option C — Manual
+Scaffolds `.hivemind/`, `.claude/commands/`, `CLAUDE.md`, plus platform adapters for Cursor, Windsurf, Copilot, Codex, and Gemini.
 
-Copy these into your project root:
-- `.hivemind/` (framework)
-- `.claude/commands/` (slash commands)
-- `CLAUDE.md` (behavior protocol)
+### Option C — Clone into existing project
+
+```bash
+cd my-project/
+git clone --depth 1 https://github.com/Awi-24/HiveMind-Protocol .hivemind-seed
+mv .hivemind-seed/.hivemind ./.hivemind
+mv .hivemind-seed/.claude ./.claude
+mv .hivemind-seed/CLAUDE.md ./CLAUDE.md
+rm -rf .hivemind-seed
+```
 
 ### Initialize
 
-Open Claude Code at your project root and run:
+Open your AI tool at the project root and run:
 
 ```
-/init
+/hm-init
 ```
 
-The CTO agent will present an onboarding form (project name, stack, active agents, compression level, language). Answers populate `.hivemind/project.json` and bootstrap the memory system.
+The CTO agent presents an onboarding form (project name, stack, active agents, compression level, language). Answers populate `.hivemind/project.json` and bootstrap the memory system.
 
 ---
 
 ## Repository Layout (after install)
 
 ```
-your-project/                     ← your actual project
-├── .hivemind/                    ← HiveMind framework (read-only to project code)
+your-project/
+├── .hivemind/                    ← HiveMind framework (NOT your project code)
 │   ├── agents/                   ← 12 role profiles
 │   ├── memory/
 │   │   ├── MANIFEST.md           ← Tier 0 — self-sufficient session snapshot
@@ -89,19 +95,34 @@ your-project/                     ← your actual project
 │   │   ├── sprint-report.md
 │   │   └── audit-log.md
 │   ├── tools/
-│   │   ├── token-compression.md  ← 4-level compression spec
+│   │   ├── token-compression.md
 │   │   ├── code-boundaries.md
 │   │   ├── token-railguards.md
 │   │   ├── mcp-catalog.md
 │   │   ├── custom-commands.md
 │   │   └── scaffold-templates/
-│   └── project.json              ← filled by /init
+│   └── project.json              ← filled by /hm-init
 │
 ├── .claude/
 │   ├── settings.json
-│   └── commands/                 ← 22 slash commands (appear in / dropdown)
+│   └── commands/                 ← 23 /hm-* slash commands (appear in / dropdown)
 │
-├── CLAUDE.md                     ← auto-loaded behavior protocol
+├── hooks/                        ← Claude Code hook scripts
+│   ├── hivemind-activate.js      ← SessionStart: injects rules as system context
+│   └── hivemind-compress-tracker.js
+│
+├── .claude-plugin/               ← Claude Code plugin manifest
+│   ├── plugin.json
+│   └── marketplace.json
+│
+├── skills/hivemind/SKILL.md      ← Claude Code skill registration
+│
+├── CLAUDE.md                     ← auto-loaded behavior protocol (Claude Code)
+├── GEMINI.md                     ← Gemini CLI instructions
+├── AGENTS.md                     ← OpenAI Codex instructions
+├── .windsurfrules                ← Windsurf instructions
+├── .cursor/rules/hivemind.mdc    ← Cursor instructions (alwaysApply: true)
+├── .github/copilot-instructions.md ← GitHub Copilot instructions
 │
 └── src/ apps/ services/ …        ← YOUR project code
 ```
@@ -110,9 +131,25 @@ your-project/                     ← your actual project
 
 ---
 
+## Multi-Platform Support
+
+The scaffolder installs instruction files for each platform automatically. All share the same core rules — framework boundary, MANIFEST-first loading, `/hm-*` commands, append-only memory.
+
+| Platform | Instruction file | How it loads |
+|----------|-----------------|--------------|
+| **Claude Code** | `CLAUDE.md` + `hooks/hivemind-activate.js` | Auto-loaded + system context injection |
+| **Cursor** | `.cursor/rules/hivemind.mdc` | `alwaysApply: true` — active in all chats |
+| **Windsurf** | `.windsurfrules` | Auto-loaded at workspace open |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | Auto-loaded for all Copilot interactions |
+| **OpenAI Codex** | `AGENTS.md` | Read by Codex agent on session start |
+| **Gemini CLI** | `GEMINI.md` | Auto-loaded in project directory |
+| **Universal** | `AI_INSTRUCTIONS.md` | Manual include (Aider, Continue, custom) |
+
+---
+
 ## The 12 Agents
 
-Role-based profiles under `.hivemind/agents/`. Activate only what you need via `/init`.
+Role-based profiles under `.hivemind/agents/`. Activate only what you need via `/hm-init`.
 
 | Slug | Role | Default tier |
 |------|------|--------------|
@@ -140,7 +177,7 @@ Designed so 90% of sessions never read past Tier 0.
 | Tier | Load | Size | When |
 |------|------|------|------|
 | **Tier 0** | `MANIFEST.md` | ~200 tok | Always — self-sufficient snapshot with counters, last decisions, link index, backlinks, tag index |
-| **Tier 1** | agent profile + own state | ~400 tok | On `/focus` or agent-scoped task |
+| **Tier 1** | agent profile + own state | ~400 tok | On `/hm-focus` or agent-scoped task |
 | **Tier 2** | blockers / handoffs / decisions | ~500 tok | Only if MANIFEST flags signal you need them |
 | **Tier 3** | full logs, cross-agent states, reports | variable | Explicit fetch only — never speculative |
 
@@ -188,9 +225,9 @@ REFERENCES: [[BLK-20260412-003]]
 ### Navigation
 
 ```
-/link DEC-20260416-001   → full entry + backlinks + forward refs
-/link #auth              → all entries tagged #auth, grouped by kind
-/link @backend-dev       → agent profile + state + workload
+/hm-link DEC-20260416-001   → full entry + backlinks + forward refs
+/hm-link #auth              → all entries tagged #auth, grouped by kind
+/hm-link @backend-dev       → agent profile + state + workload
 ```
 
 ### Domain tags (pre-registered)
@@ -215,16 +252,18 @@ Full spec: [`.hivemind/tools/linking.md`](.hivemind/tools/linking.md).
 ## Model Routing
 
 ```
-┌─────────┬──────────────────────────────┬────────────────────────────────┐
-│  Tier   │            Model             │          Use for               │
-├─────────┼──────────────────────────────┼────────────────────────────────┤
-│ lite    │ claude-haiku-4-5-20251001    │ reads, logs, status, formatting│
-│ standard│ claude-sonnet-4-6            │ code, debug, tests, reviews    │
-│ heavy   │ claude-opus-4-6              │ architecture, audits, RCAs     │
-└─────────┴──────────────────────────────┴────────────────────────────────┘
+┌──────────┬──────────────────────────────┬────────────────────────────────┐
+│  Tier    │            Model             │          Use for               │
+├──────────┼──────────────────────────────┼────────────────────────────────┤
+│ lite     │ claude-haiku-4-5-20251001    │ reads, logs, status, formatting│
+│ standard │ claude-sonnet-4-6            │ code, debug, tests, reviews    │
+│ heavy    │ claude-opus-4-6              │ architecture, audits, RCAs     │
+└──────────┴──────────────────────────────┴────────────────────────────────┘
 ```
 
-Use `/route <task>` when unsure. Escalation rule: 3 failed attempts at a tier → escalate one tier up, log in `decisions.log`.
+Use `/hm-route <task>` when unsure. Escalation rule: 3 failed attempts at a tier → escalate one tier up, log in `decisions.log`.
+
+For non-Claude platforms, replace model IDs in `.hivemind/project.json > routing` with equivalents (e.g. `gpt-4o-mini`, `gemini-2.0-flash`, `llama3.1:70b`).
 
 ---
 
@@ -245,50 +284,52 @@ Inspired by [caveman](https://github.com/JuliusBrussee/caveman). Full spec in `.
 
 **Auto-clarity suspension**: compression automatically stops for CRITICAL security warnings, irreversible ops, and order-sensitive sequences. Resumes after the critical section.
 
-Switch per session: `/compress <level>`.
+Switch per session: `/hm-compress <level>`.
 
 ---
 
-## Slash Commands (appear in `/` dropdown)
+## Slash Commands (23 total, all `/hm-*` prefixed)
+
+The `/hm-` prefix avoids collisions with commands from other tools.
 
 ### Lifecycle
 | Command | Tier | Purpose |
 |---------|------|---------|
-| `/init` | heavy | CTO onboarding form (run once per project) |
-| `/scaffold <template>` | standard | Generate project structure |
-| `/sprint` | lite | Generate sprint report |
-| `/deploy --env <env>` | standard | QA → Security → DevOps chain |
+| `/hm-init` | heavy | CTO onboarding form (run once per project) |
+| `/hm-scaffold <template>` | standard | Generate project structure |
+| `/hm-sprint` | lite | Generate sprint report |
+| `/hm-deploy --env <env>` | standard | QA → Security → DevOps chain |
 
 ### Daily work
 | Command | Tier | Purpose |
 |---------|------|---------|
-| `/status` | lite | Cross-agent summary |
-| `/standup` | lite | Daily standup |
-| `/focus <agent>` | lite | Scope session to one agent |
-| `/handoff <from> <to> <task>` | lite | Formal handoff |
-| `/report <agent> <summary>` | lite | Append CHANGELOG |
-| `/decision <agent> <text>` | lite | Append decisions.log |
-| `/memo <text>` | lite | Quick one-liner note |
-| `/link <ref>` | lite | Resolve ID, `#tag`, or `@agent` (read-only) |
-| `/review <file>` | standard | Structured code review |
+| `/hm-status` | lite | Cross-agent summary |
+| `/hm-standup` | lite | Daily standup |
+| `/hm-focus <agent>` | lite | Scope session to one agent |
+| `/hm-handoff <from> <to> <task>` | lite | Formal handoff |
+| `/hm-report <agent> <summary>` | lite | Append CHANGELOG |
+| `/hm-decision <agent> <text>` | lite | Append decisions.log |
+| `/hm-memo <text>` | lite | Quick one-liner note |
+| `/hm-link <ref>` | lite | Resolve ID, `#tag`, or `@agent` (read-only) |
+| `/hm-review <file>` | standard | Structured code review |
 
 ### Incidents
 | Command | Tier | Purpose |
 |---------|------|---------|
-| `/blocker <desc>` | lite | Register blocker |
-| `/resolve <title>` | lite | Close blocker |
-| `/hotfix <desc>` | standard | Fast-track emergency fix |
-| `/audit --scope <scope>` | heavy | Security audit |
-| `/checkpoint --label <name>` | lite | Snapshot pre-risky-op |
+| `/hm-blocker <desc>` | lite | Register blocker |
+| `/hm-resolve <title>` | lite | Close blocker |
+| `/hm-hotfix <desc>` | standard | Fast-track emergency fix |
+| `/hm-audit --scope <scope>` | heavy | Security audit |
+| `/hm-checkpoint --label <name>` | lite | Snapshot pre-risky-op |
 
 ### Token hygiene
 | Command | Tier | Purpose |
 |---------|------|---------|
-| `/compact` | lite | Compress old memory into digest |
-| `/compress <level>` | lite | Change session compression |
-| `/digest [--since <days>]` | lite | Activity summary (no writes) |
-| `/reset-context [--keep <agent>]` | lite | Drop non-essential context |
-| `/route <task>` | lite | Suggest tier + owning agent |
+| `/hm-compact` | lite | Compress old memory into digest |
+| `/hm-compress <level>` | lite | Change session compression |
+| `/hm-digest [--since <days>]` | lite | Activity summary (no writes) |
+| `/hm-reset-context [--keep <agent>]` | lite | Drop non-essential context |
+| `/hm-route <task>` | lite | Suggest tier + owning agent |
 
 ---
 
@@ -297,23 +338,11 @@ Switch per session: `/compress <level>`.
 Defined in `.hivemind/project.json > railguards`. Enforced globally by every agent.
 
 - **Anti-loop**: 3 attempts same approach → escalate + log
-- **Anti-waste**: no speculative reads, no "just-in-case" code, no adjacent refactors, no extra comments outside changed scope
+- **Anti-waste**: no speculative reads, no "just-in-case" code, no adjacent refactors
 - **Destructive ops**: `DROP`, `DELETE`, `rm -rf`, `git push --force`, `terraform destroy` → log + confirm before run
-- **Forbidden code patterns**: `eval(`, `exec(`, `shell=True`, `innerHTML =`, inline passwords, etc.
+- **Forbidden patterns**: `eval(`, `exec(`, `shell=True`, `innerHTML =`, inline passwords
 - **Framework protection**: `.hivemind/` is read-only to all non-governance operations
 - **Secret exposure**: never in logs, comments, or CHANGELOG
-
----
-
-## Multi-Model Support
-
-| Platform | How to load |
-|----------|-------------|
-| **Claude Code** | Auto-loaded from `CLAUDE.md` |
-| **API (Claude/GPT/Gemini)** | Include CLAUDE.md as system prompt |
-| **Ollama / local** | Include CLAUDE.md in system prompt |
-
-For non-Claude models, replace `claude-haiku-*`, `claude-sonnet-*`, `claude-opus-*` in `.hivemind/project.json > routing` with equivalent IDs (e.g. `gpt-4o`, `gemini-2.0-flash`, `llama3.1:70b`).
 
 ---
 
@@ -323,13 +352,13 @@ For non-Claude models, replace `claude-haiku-*`, `claude-sonnet-*`, `claude-opus
 2. Create `.hivemind/memory/agent-states/<role>.state.md` from template
 3. Add slug to `.hivemind/project.json > agents.available` and `agents.active`
 4. Optionally add code-ownership rules in `.hivemind/tools/code-boundaries.md`
-5. Run `/focus <role>` to verify
+5. Run `/hm-focus <role>` to verify
 
 ---
 
-## Adding a New Slash Command
+## Adding a Slash Command
 
-1. Create `.claude/commands/<name>.md` with frontmatter:
+1. Create `.claude/commands/hm-<name>.md` with frontmatter:
    ```markdown
    ---
    description: One-line description (appears in dropdown)
@@ -340,8 +369,8 @@ For non-Claude models, replace `claude-haiku-*`, `claude-sonnet-*`, `claude-opus
    Instructions for the agent when this command runs.
    Use $ARGUMENTS to reference passed args.
    ```
-2. Register it in `.hivemind/project.json > commands` with its tier
-3. Document it in `.hivemind/tools/custom-commands.md`
+2. Register in `.hivemind/project.json > commands` with its tier
+3. Document in `.hivemind/tools/custom-commands.md`
 
 The command appears in the Claude Code `/` dropdown immediately.
 
@@ -349,7 +378,7 @@ The command appears in the Claude Code `/` dropdown immediately.
 
 ## Supported Reply Languages
 
-`en` (default), `pt-BR`, `es`, `fr`, `de`, `ja`. Set via `/init` or `.hivemind/project.json > communication.reply_language`. Technical terms always remain in English regardless of reply language.
+`en` (default), `pt-BR`, `es`, `fr`, `de`, `ja`. Set via `/hm-init` or `.hivemind/project.json > communication.reply_language`. Technical terms always remain in English.
 
 ---
 
@@ -357,11 +386,11 @@ The command appears in the Claude Code `/` dropdown immediately.
 
 - Keep agent profiles precise, actionable, LLM-readable
 - Never break the append-only memory protocol
-- Every new command must declare its model tier
-- Run `/audit --scope all` before opening a PR
+- Every new command must declare its model tier and use the `/hm-` prefix
+- Run `/hm-audit --scope all` before opening a PR
 
 ---
 
 ## License
 
-MIT — use freely, customize fully.
+GPL-3.0

@@ -1,0 +1,36 @@
+---
+description: HiveMind Protocol governance — always active for this project
+alwaysApply: true
+---
+
+# HiveMind Protocol Active
+
+## Framework Boundary (CRITICAL)
+`.hivemind/` is governance infrastructure only. All project code belongs in `src/`, `apps/`, or the repo root — **never** inside `.hivemind/`.
+
+## Session Start Protocol
+1. Read `.hivemind/memory/MANIFEST.md` first (Tier 0, ~200 tokens)
+2. If MANIFEST is fresh (< 24h), stop there and start working
+3. Only load deeper files when MANIFEST flags require it
+
+## Commands — all use `/hm-` prefix
+`/hm-init` · `/hm-status` · `/hm-standup` · `/hm-focus` · `/hm-handoff` · `/hm-decision`
+`/hm-report` · `/hm-blocker` · `/hm-resolve` · `/hm-memo` · `/hm-link` · `/hm-route`
+`/hm-audit` · `/hm-hotfix` · `/hm-deploy` · `/hm-review` · `/hm-scaffold` · `/hm-sprint`
+`/hm-checkpoint` · `/hm-digest` · `/hm-compact` · `/hm-compress` · `/hm-reset-context`
+
+## Memory Protocol
+- **Append-only**: `decisions.log`, `handoff-queue.md`, `blockers.md`, `shared-context.md`
+- **Update MANIFEST** after every write
+- Never overwrite history
+
+## Compression Default: heavy
+Drop articles and filler. Fragments OK. Technical terms exact. Code blocks verbatim.
+
+## Model Routing
+- Haiku → reads, reports, logs, status checks
+- Sonnet → code, debug, tests, reviews
+- Opus → architecture decisions, security audits, incident RCA
+
+## On `/hm-init`
+Ask the user about **their** project. The `.hivemind/` framework is already installed — do not scaffold into it.

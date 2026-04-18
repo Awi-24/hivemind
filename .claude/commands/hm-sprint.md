@@ -13,10 +13,10 @@ Determine sprint window:
 Read (ultra-compression context only):
 1. `.hivemind/reports/CHANGELOG.md` entries in window
 2. `.hivemind/memory/blockers.md` (both active + resolved-in-window)
-3. `.hivemind/memory/handoff-queue.md` `[DONE]` + `[PENDING]` entries
+3. `.hivemind/memory/hm-handoff-queue.md` `[DONE]` + `[PENDING]` entries
 4. `.hivemind/memory/decisions.log` entries in window
 
-Write to `.hivemind/reports/sprint-report.md` (append, don't overwrite prior sprints):
+Write to `.hivemind/reports/hm-sprint-report.md` (append, don't overwrite prior sprints):
 
 ```
 # Sprint <n> — <start> → <end>

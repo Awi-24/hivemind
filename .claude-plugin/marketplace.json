@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "hivemind",
+  "description": "HiveMind Protocol — multi-agent governance for AI-assisted development. Persistent tiered memory, 12 agent roles, 4-level token compression, 23 /hm-* slash commands.",
+  "owner": {
+    "name": "Adrian Widmer",
+    "url": "https://github.com/Awi-24/HiveMind-Protocol"
+  },
+  "plugins": [
+    {
+      "name": "hivemind",
+      "description": "Multi-agent governance framework. Tiered memory, 12 agent roles, 4-level compression, 23 /hm-* commands. Works with Claude Code, Cursor, Windsurf, Copilot, and Codex.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

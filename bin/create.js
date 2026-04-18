@@ -11,6 +11,7 @@ const EXCLUDE = new Set([
   "node_modules",
   "bin",
   "assets",
+  "platforms",
   "package.json",
   "package-lock.json",
   ".npmignore",
@@ -49,6 +50,25 @@ function copyDir(src, dest, relRoot = "") {
 }
 
 copyDir(templateDir, targetDir);
+
+// Platform adapters — distribute to canonical locations
+const platformsDir = path.join(__dirname, '..', 'platforms');
+const platformMappings = [
+  ['cursor/hivemind.mdc',             '.cursor/rules/hivemind.mdc'],
+  ['windsurf/windsurfrules',          '.windsurfrules'],
+  ['copilot/copilot-instructions.md', '.github/copilot-instructions.md'],
+  ['codex/AGENTS.md',                 'AGENTS.md'],
+  ['gemini/GEMINI.md',                'GEMINI.md'],
+  ['universal/AI_INSTRUCTIONS.md',    'AI_INSTRUCTIONS.md'],
+];
+for (const [src, dest] of platformMappings) {
+  const srcPath = path.join(platformsDir, src);
+  const destPath = path.join(targetDir, dest);
+  if (fs.existsSync(srcPath)) {
+    fs.mkdirSync(path.dirname(destPath), { recursive: true });
+    fs.copyFileSync(srcPath, destPath);
+  }
+}
 
 const today = new Date().toISOString().slice(0, 10);
 const now = new Date().toISOString().slice(0, 16).replace("T", " ");
@@ -103,7 +123,7 @@ const memoryFiles = {
 **Sprint**: 0
 
 ### Active Focus
-_Not yet defined — run /init to configure._
+_Not yet defined — run /hm-init to configure._
 
 ### Recent changes
 _empty._
@@ -131,7 +151,7 @@ _empty._
 ## Queue
 
 [${now}] FROM: init → TO: cto
-TASK: Run /init to configure project.json and activate agents
+TASK: Run /hm-init to configure project.json and activate agents
 CONTEXT: fresh scaffold, no agents active yet
 FILES: .hivemind/project.json
 MODEL: heavy
@@ -161,10 +181,10 @@ _none._
 ## Tier 0 Snapshot
 
 \`\`\`
-project:            my-project          ← filled by /init
+project:            my-project          ← filled by /hm-init
 phase:              discovery
 sprint:             0 (day 0 / 0)
-active_focus:       not configured — run /init
+active_focus:       not configured — run /hm-init
 last_updated:       ${now}
 manifest_freshness: fresh
 compression:        heavy
@@ -175,7 +195,7 @@ reply_language:     en
 
 | Agent | Status | Current focus | Last active |
 |-------|--------|---------------|-------------|
-| cto | idle | awaiting /init | — |
+| cto | idle | awaiting /hm-init | — |
 | lead-dev | idle | — | — |
 
 ### Counters
@@ -202,7 +222,7 @@ reply_language:     en
 |------|------------|----------|
 | \`decisions.log\` | [init] HiveMind scaffolded | L5 |
 | \`blockers.md\` | none active | — |
-| \`handoff-queue.md\` | init → cto: run /init | L5-11 |
+| \`handoff-queue.md\` | init → cto: run /hm-init | L5-11 |
 | \`shared-context.md\` | initialized | L1-20 |
 
 ### Pending handoffs per agent
@@ -371,8 +391,8 @@ console.log(`
   Next steps:
     1. cd ${target}
     2. Open in Claude Code
-    3. Run /init  (CTO onboarding form)
-    4. Run /status to verify
+    3. Run /hm-init  (CTO onboarding form)
+    4. Run /hm-status to verify
 
   Docs: https://github.com/Awi-24/HiveMind-Protocol
 `);

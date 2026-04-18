@@ -30,5 +30,5 @@ pending handoffs to me: <n>
 ```
 
 Rules:
-- Switching agent requires explicit new `/focus` — don't drift
-- If agent not in `active` list, warn user and ask to activate via `/init` edit
+- Switching agent requires explicit new `/hm-focus` — don't drift
+- If agent not in `active` list, warn user and ask to activate via `/hm-init` edit
