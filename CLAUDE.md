@@ -429,12 +429,16 @@ HiveMind works with any AI coding tool. Platform instruction files in `platforms
 
 `hooks/hivemind-activate.js` (SessionStart) injects critical framework rules into system context — not just document context. Rules persist across all turns. Other platforms rely on their instruction files serving the same role.
 
-Install as plugin:
-```bash
-claude plugin install Awi-24/HiveMind-Protocol
-```
+Hooks are wired automatically by `npx create-hivemind-protocol` into `.claude/settings.json`. For existing projects, add manually to `.claude/settings.json`:
 
-Or wire hooks manually in `~/.claude/settings.json` — see `hooks/` directory for scripts.
+```json
+{
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "node hooks/hivemind-activate.js", "timeout": 5}]}],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "node hooks/hivemind-compress-tracker.js", "timeout": 5}]}]
+  }
+}
+```
 
 - MCP catalog: `.hivemind/tools/mcp-catalog.md`
 

@@ -13,7 +13,7 @@ npx create-hivemind-protocol my-project
 
 HiveMind is a **framework folder** (`.hivemind/`) you place at the root of any project. It turns any AI coding assistant into a governed multi-agent system with persistent memory, defined roles, behavioral railguards, and a 4-level token compression protocol — preventing hallucinations, context loss, and the classic agent failure modes: forgetting, looping, drifting, and burning tokens.
 
-Works natively with **Claude Code** (plugin + hooks). Also supports **Cursor**, **Windsurf**, **GitHub Copilot**, **OpenAI Codex**, and **Gemini CLI** via platform-specific instruction files installed automatically by the scaffolder.
+Works natively with **Claude Code** (hooks + slash commands). Also supports **Cursor**, **Windsurf**, **GitHub Copilot**, **OpenAI Codex**, and **Gemini CLI** via platform-specific instruction files installed automatically by the scaffolder.
 
 ---
 
@@ -35,26 +35,18 @@ Works natively with **Claude Code** (plugin + hooks). Also supports **Cursor**, 
 
 ## Installation
 
-### Option A — Claude Code plugin (recommended)
-
-```bash
-claude plugin install Awi-24/HiveMind-Protocol
-npx create-hivemind-protocol my-project
-cd my-project
-```
-
-The plugin wires `hooks/hivemind-activate.js` as a SessionStart hook — injects framework rules into system context so they persist across all turns, not just as document context.
-
-### Option B — New project from template
+### Option A — New project from template (recommended)
 
 ```bash
 npx create-hivemind-protocol my-project
 cd my-project
 ```
 
-Scaffolds `.hivemind/`, `.claude/commands/`, `CLAUDE.md`, plus platform adapters for Cursor, Windsurf, Copilot, Codex, and Gemini.
+Scaffolds `.hivemind/`, `.claude/commands/`, `.claude/settings.json` (with hooks pre-wired), `CLAUDE.md`, plus platform adapters for Cursor, Windsurf, Copilot, Codex, and Gemini.
 
-### Option C — Clone into existing project
+The SessionStart hook (`hooks/hivemind-activate.js`) injects framework rules into system context so they persist across all turns, not just as document context.
+
+### Option B — Clone into existing project
 
 ```bash
 cd my-project/
@@ -62,7 +54,19 @@ git clone --depth 1 https://github.com/Awi-24/HiveMind-Protocol .hivemind-seed
 mv .hivemind-seed/.hivemind ./.hivemind
 mv .hivemind-seed/.claude ./.claude
 mv .hivemind-seed/CLAUDE.md ./CLAUDE.md
+mv .hivemind-seed/hooks ./hooks
 rm -rf .hivemind-seed
+```
+
+Then wire hooks into `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "node hooks/hivemind-activate.js", "timeout": 5}]}],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "node hooks/hivemind-compress-tracker.js", "timeout": 5}]}]
+  }
+}
 ```
 
 ### Initialize

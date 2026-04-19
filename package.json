@@ -1,6 +1,6 @@
 {
   "name": "create-hivemind-protocol",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "HiveMind Protocol — multi-agent context and behavior framework for AI-assisted software development",
   "bin": {
     "create-hivemind-protocol": "./bin/create.js"

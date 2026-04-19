@@ -376,6 +376,19 @@ for (const [relPath, content] of Object.entries({ ...memoryFiles, ...reportFiles
   fs.writeFileSync(full, content);
 }
 
+// Wire hooks into .claude/settings.json
+const settingsPath = path.join(targetDir, '.claude', 'settings.json');
+let settings = {};
+if (fs.existsSync(settingsPath)) {
+  try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {}
+}
+settings.hooks = {
+  SessionStart: [{ hooks: [{ type: 'command', command: 'node hooks/hivemind-activate.js', timeout: 5, statusMessage: 'Loading HiveMind Protocol...' }] }],
+  UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node hooks/hivemind-compress-tracker.js', timeout: 5 }] }],
+};
+fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+
 console.log(`
 ╔══════════════════════════════════════════╗
 ║       HiveMind Protocol — Ready          ║
@@ -384,9 +397,10 @@ console.log(`
   Scaffolded into: ./${target}
 
   Layout:
-    .hivemind/        ← framework (do NOT put project code here)
-    .claude/commands/ ← slash commands surfaced in dropdown
-    CLAUDE.md         ← behavior protocol (auto-loaded by Claude Code)
+    .hivemind/           ← framework (do NOT put project code here)
+    .claude/commands/    ← slash commands surfaced in dropdown
+    .claude/settings.json ← hooks pre-wired (SessionStart + UserPromptSubmit)
+    CLAUDE.md            ← behavior protocol (auto-loaded by Claude Code)
 
   Next steps:
     1. cd ${target}
