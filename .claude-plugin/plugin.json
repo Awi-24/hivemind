@@ -3,7 +3,7 @@
   "description": "HiveMind Protocol — multi-agent governance framework. Tiered memory, role-based agents, token compression, 23 /hm-* commands.",
   "author": {
     "name": "Adrian Widmer",
-    "url": "https://github.com/Awi-24/HiveMind-Protocol"
+    "url": "https://github.com/Awi-24/hivemind"
   },
   "hooks": {
     "SessionStart": [

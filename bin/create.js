@@ -408,5 +408,5 @@ console.log(`
     3. Run /hm-init  (CTO onboarding form)
     4. Run /hm-status to verify
 
-  Docs: https://github.com/Awi-24/HiveMind-Protocol
+  Docs: https://github.com/Awi-24/hivemind
 `);

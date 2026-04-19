@@ -50,7 +50,7 @@ The SessionStart hook (`hooks/hivemind-activate.js`) injects framework rules int
 
 ```bash
 cd my-project/
-git clone --depth 1 https://github.com/Awi-24/HiveMind-Protocol .hivemind-seed
+git clone --depth 1 https://github.com/Awi-24/hivemind .hivemind-seed
 mv .hivemind-seed/.hivemind ./.hivemind
 mv .hivemind-seed/.claude ./.claude
 mv .hivemind-seed/CLAUDE.md ./CLAUDE.md
