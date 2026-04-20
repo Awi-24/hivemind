@@ -2,7 +2,7 @@
   <img src="assets/logo.png" alt="HiveMind Protocol" width="160" />
 </p>
 
-# HiveMind Protocol
+# HiveMind Protocol 1.3.0
 
 **A multi-agent context and behavior framework for AI-assisted software development.**  
 **Drop it into any repo as `.hivemind/` — give your agents persistent memory, role discipline, and token hygiene.**
