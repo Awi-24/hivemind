@@ -35,18 +35,26 @@ Works natively with **Claude Code** (hooks + slash commands). Also supports **Cu
 
 ## Installation
 
-### Option A — New project from template (recommended)
+### Option A — New project from template
 
 ```bash
 npx create-hivemind-protocol my-project
 cd my-project
 ```
 
-Scaffolds `.hivemind/`, `.claude/commands/`, `.claude/settings.json` (with hooks pre-wired), `CLAUDE.md`, plus platform adapters for Cursor, Windsurf, Copilot, Codex, and Gemini.
+### Option B — Install into existing project (recommended for most users)
+
+Run inside your existing repo root:
+
+```bash
+npx create-hivemind-protocol .
+```
+
+Installs `.hivemind/`, `.claude/commands/`, `.claude/settings.json` (hooks pre-wired), `CLAUDE.md`, and hooks — without touching your existing project files.
 
 The SessionStart hook (`hooks/hivemind-activate.js`) injects framework rules into system context so they persist across all turns, not just as document context.
 
-### Option B — Clone into existing project
+### Option C — Clone into existing project
 
 ```bash
 cd my-project/
@@ -71,13 +79,15 @@ Then wire hooks into `.claude/settings.json`:
 
 ### Initialize
 
-Open your AI tool at the project root and run:
+Open Claude Code at the project root and run:
 
 ```
 /hm-init
 ```
 
-The CTO agent presents an onboarding form (project name, stack, active agents, compression level, language). Answers populate `.hivemind/project.json` and bootstrap the memory system.
+> **Note**: `/hm-init` is the HiveMind command. Do not confuse with `/init` (Claude Code's built-in CLAUDE.md generator — unrelated).
+
+The CTO agent asks questions interactively, one group at a time, using native UI elements for multiple-choice fields. Answers populate `.hivemind/project.json` and bootstrap the memory system.
 
 ---
 

@@ -20,15 +20,21 @@ const EXCLUDE = new Set([
   "LICENSE",
 ]);
 
-const target = process.argv[2] || "my-hivemind-project";
+const arg = process.argv[2];
+const inPlace = !arg || arg === ".";
+const target = inPlace ? "." : arg;
 const targetDir = path.resolve(process.cwd(), target);
 
-if (fs.existsSync(targetDir)) {
+if (!inPlace && fs.existsSync(targetDir)) {
   console.error(`\nError: directory "${target}" already exists.\n`);
+  console.error(`To install into an existing project: npx create-hivemind-protocol .\n`);
   process.exit(1);
 }
 
 const templateDir = path.join(__dirname, "..");
+
+// HiveMind-owned paths — always written even in in-place installs
+const HM_OWNED = new Set([".hivemind", ".claude", "hooks", "skills", "CLAUDE.md"]);
 
 function copyDir(src, dest, relRoot = "") {
   fs.mkdirSync(dest, { recursive: true });
@@ -41,6 +47,8 @@ function copyDir(src, dest, relRoot = "") {
     // Memory and reports are regenerated fresh below — never copy from meta-repo
     if (rel === ".hivemind/memory") continue;
     if (rel === ".hivemind/reports") continue;
+    // In-place installs: skip non-HiveMind files that already exist
+    if (inPlace && relRoot === "" && !HM_OWNED.has(entry) && fs.existsSync(destPath)) continue;
     if (fs.statSync(srcPath).isDirectory()) {
       copyDir(srcPath, destPath, rel);
     } else {
@@ -389,24 +397,29 @@ settings.hooks = {
 fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
 
+const locationLine = inPlace
+  ? `  Installed into: current directory`
+  : `  Scaffolded into: ./${target}`;
+
+const cdStep = inPlace ? `` : `    1. cd ${target}\n`;
+
 console.log(`
 ╔══════════════════════════════════════════╗
 ║       HiveMind Protocol — Ready          ║
 ╚══════════════════════════════════════════╝
 
-  Scaffolded into: ./${target}
+${locationLine}
 
   Layout:
-    .hivemind/           ← framework (do NOT put project code here)
-    .claude/commands/    ← slash commands surfaced in dropdown
+    .hivemind/            ← framework (do NOT put project code here)
+    .claude/commands/     ← slash commands surfaced in dropdown
     .claude/settings.json ← hooks pre-wired (SessionStart + UserPromptSubmit)
-    CLAUDE.md            ← behavior protocol (auto-loaded by Claude Code)
+    CLAUDE.md             ← behavior protocol (auto-loaded by Claude Code)
 
   Next steps:
-    1. cd ${target}
-    2. Open in Claude Code
-    3. Run /hm-init  (CTO onboarding form)
-    4. Run /hm-status to verify
+${cdStep}    ${inPlace ? "1" : "2"}. Open in Claude Code
+    ${inPlace ? "2" : "3"}. Run /hm-init  (CTO onboarding form)
+    ${inPlace ? "3" : "4"}. Run /hm-status to verify
 
   Docs: https://github.com/Awi-24/hivemind
 `);

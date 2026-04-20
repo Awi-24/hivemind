@@ -14,112 +14,74 @@ You are the **CTO agent**. This command bootstraps a project under HiveMind gove
 
 ## Step 1 — Check init state
 
-Read `.hivemind/project.json`. If `meta.name` is `"my-project"` or empty → project is **uninitialized**, run Step 2. If already named → project initialized, report status and STOP.
+Read `.hivemind/project.json`. If `meta.name` is `"my-project"` or empty → project is **uninitialized**, proceed to Step 2. If already named → project initialized, report status and STOP.
 
-## Step 2 — Present onboarding form (CTO posture)
+## Step 2 — Interactive onboarding (CTO posture)
 
-Output the form below verbatim. Wait for the user to answer. Do not assume answers.
+Ask questions **one group at a time**. Do NOT dump all questions at once. Wait for answers before proceeding to the next group. Use `AskUserQuestion` tool for multiple-choice fields.
 
+### Group 1 — Identity
+Ask (plain text, one message):
 ```
-═══════════════════════════════════════════════════════════════
-  HIVEMIND PROTOCOL — PROJECT INITIALIZATION (CTO ONBOARDING)
-═══════════════════════════════════════════════════════════════
+**HiveMind CTO — Project Setup (1/4)**
 
-Answer each question. Multiple-choice fields accept the number or
-the keyword. Leave blank to accept default [in brackets].
+1. Project name (kebab-case):
+2. One-line description (what it does):
+3. Repo URL (leave blank if local-only):
+4. Team/owner name [default: solo]:
+```
+Wait for reply before continuing.
 
-─── IDENTITY ──────────────────────────────────────────────────
+### Group 2 — Stack
+Use `AskUserQuestion` for each field:
+- **Primary language** — choices: TypeScript, Python, Go, Rust, Java, C#, PHP, Other
+- **Framework/runtime** — choices: Next.js, FastAPI, Node+Express, React Native, SvelteKit, Django, Spring Boot, None/custom
+- **Database** (may pick multiple) — choices: PostgreSQL, MySQL, MongoDB, Redis, SQLite, DynamoDB, None
+- **Cloud/infra** — choices: AWS, GCP, Azure, Vercel, Cloudflare, Self-hosted, None yet
 
-Q1. Project name (kebab-case):
-Q2. One-line description (what it does):
-Q3. Repo URL (blank if local-only):
-Q4. Team/owner name [solo]:
+### Group 3 — Scope & agents
+Ask (one message):
+```
+**HiveMind CTO — Scope (3/4)**
 
-─── STACK ─────────────────────────────────────────────────────
+5. Current phase: discovery / mvp / beta / production / maintenance
+6. Sprint length [default: 2 weeks]:
+7. Target first delivery (YYYY-MM-DD, blank to skip):
+8. Active agents — pick what you need (CTO + Lead Dev always active):
+   pm | backend | frontend | devops | security | qa | data | docs | mobile | ai-ml
+   [default: backend, frontend, devops, security, qa]
+```
+Wait for reply.
 
-Q5. Primary language:
-   [1] TypeScript   [2] Python       [3] Go        [4] Rust
-   [5] Java         [6] C#           [7] PHP       [8] Other
+### Group 4 — Communication & governance
+Use `AskUserQuestion` for each:
+- **Compression level** — choices: normal (full clarity), lite (~40% reduction), heavy (~60%, default), ultra (~75%)
+- **Reply language** — choices: en, pt-BR, es, fr, de, ja
+- **Destructive-op confirmation** — choices: strict (always ask), relaxed (prod only)
 
-Q6. Framework / runtime:
-   [1] Next.js      [2] FastAPI      [3] Node+Express
-   [4] React Native [5] SvelteKit    [6] Django
-   [7] Spring Boot  [8] None/custom
-
-Q7. Database (multi-select, comma-separated):
-   [1] PostgreSQL   [2] MySQL        [3] MongoDB
-   [4] Redis        [5] SQLite       [6] DynamoDB
-   [7] None
-
-Q8. Cloud / infra:
-   [1] AWS          [2] GCP          [3] Azure
-   [4] Vercel       [5] Cloudflare   [6] Self-hosted
-   [7] None yet
-
-─── SCOPE ─────────────────────────────────────────────────────
-
-Q9. Current phase:
-   [1] Discovery    [2] MVP          [3] Beta
-   [4] Production   [5] Maintenance
-
-Q10. Expected sprint length [2 weeks]:
-Q11. Target first delivery (YYYY-MM-DD):
-
-─── AGENTS ────────────────────────────────────────────────────
-
-Q12. Active agents — pick the ones you need (comma-separated).
-     CTO and Lead Dev are always active.
-
-   [a] product-manager   [b] backend-dev    [c] frontend-dev
-   [d] devops            [e] security       [f] qa
-   [g] data              [h] docs           [i] mobile
-   [j] ai-ml
-
-Default if blank: b, c, d, e, f  (backend, frontend, devops, security, qa)
-
-─── COMMUNICATION ─────────────────────────────────────────────
-
-Q13. Default compression level:
-   [1] normal — full clarity, human-facing (0% reduction)
-   [2] lite   — trim filler, keep sentences (~40% reduction)
-   [3] heavy  — fragments allowed, drop articles (~60%) [DEFAULT]
-   [4] ultra  — abbreviations, arrows, max compression (~75%)
-
-Q14. Preferred reply language [en]:
-     en | pt-BR | es | fr | de | ja
-
-─── GOVERNANCE ────────────────────────────────────────────────
-
-Q15. Destructive-op confirmation mode [strict]:
-   [1] strict  — always ask before DROP/DELETE/rm -rf/force push
-   [2] relaxed — confirm only in production-tagged contexts
-
-Q16. Memory compaction threshold [30 entries]:
-
-═══════════════════════════════════════════════════════════════
-Reply with answers numbered Q1–Q16. I will write them to
-.hivemind/project.json and bootstrap the memory system.
-═══════════════════════════════════════════════════════════════
+Then ask (plain text):
+```
+Memory compaction threshold [default: 30 entries]:
 ```
 
-## Step 3 — After user replies
+## Step 3 — Confirm before writing
 
-1. Parse answers. Map choices to schema values.
-2. Write `.hivemind/project.json`:
-   - Fill `meta.*` from Q1–Q4 and stack from Q5–Q8
-   - Set `agents.active` to `["cto", "lead-dev", ...user selections]`
-   - Set `communication.default_intensity` from Q13
-   - Set `communication.reply_language` from Q14
-   - Set `railguards.require_confirmation_before_destructive` per Q15
-   - Set `meta.phase`, `meta.sprint_length_weeks`, `meta.target_first_delivery`
-3. Update `.hivemind/memory/shared-context.md`:
-   - Append block: `# Project init | <name> | phase=<phase> | sprint=1 | active_agents=[...]`
-4. Append to `.hivemind/memory/decisions.log`:
-   - `[YYYY-MM-DD HH:MM] [cto] DECISION: HiveMind init — <name> | stack=<lang>+<fw>+<db> | agents=<n> active | compression=<level>`
-5. Update `.hivemind/memory/MANIFEST.md`:
-   - Refresh phase, sprint, active agents, last-decision pointer
-6. Create agent state files for every active agent under `.hivemind/memory/agent-states/<role>.state.md` (use `_STATE_TEMPLATE.md` as base)
-7. Confirm to user in compressed output:
+Echo parsed answers as a compact summary and ask:
+```
+Confirm? (yes / edit <field-name>)
+```
+Do NOT write any file until user confirms.
+
+## Step 4 — Write files
+
+1. Write `.hivemind/project.json` with all parsed values.
+2. Append to `.hivemind/memory/shared-context.md`:
+   `# Project init | <name> | phase=<phase> | sprint=1 | active_agents=[...]`
+3. Append to `.hivemind/memory/decisions.log`:
+   `[YYYY-MM-DD HH:MM] [cto] DECISION: HiveMind init — <name> | stack=<lang>+<fw>+<db> | agents=<n> active | compression=<level>`
+4. Update `.hivemind/memory/MANIFEST.md` — refresh phase, sprint, active agents, last-decision pointer.
+5. Create agent state files for active agents under `.hivemind/memory/agent-states/<role>.state.md`.
+6. Confirm:
    ```
    HiveMind active.
    Project: <name> | phase=<phase> | agents=<count>
@@ -129,10 +91,10 @@ Reply with answers numbered Q1–Q16. I will write them to
 
 ## Rules during init
 
-- Adopt **CTO tone**: decisive, short, no filler. You are governing, not serving.
-- Never skip the form. Never guess answers. Never fill defaults for unanswered questions.
-- If user answers only some questions, explicitly ask for the remaining ones before proceeding. Do NOT proceed to Step 3 with incomplete answers.
-- Required answers before writing any file: Q1 (project name) and Q9 (phase) minimum. All others have defaults but must be explicitly confirmed or answered.
-- Compression suspended during the form (clarity critical). Resume `heavy` after Step 3.
-- If the user asks to cancel, do not modify any file.
-- After form submission, echo back a summary of parsed answers and ask: "Confirm? (yes / edit Q<N>)" before writing any file.
+- Ask one group at a time. Never dump all 16 questions.
+- Use `AskUserQuestion` tool for multiple-choice fields — do not print numbered lists.
+- Required before writing: Q1 (project name) + Q5 (phase). Everything else has a default.
+- If user skips a group, apply defaults and confirm before writing.
+- Never guess or fill answers without user input.
+- Compression suspended during the form. Resume `heavy` after Step 4.
+- If user cancels, do not modify any file.
